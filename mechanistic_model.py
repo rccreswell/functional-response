@@ -1,11 +1,46 @@
-"""Slower, mechanistic model.
+"""Functional response mechanistic model.
 """
 
 import numpy as np
 from scipy.linalg import expm
 import pandas as pd
 
-import likelihood
+
+def a_parameter_creator(beta, x):
+    r"""Compute parameter value from regression coefficients.
+
+    This function assumes that the parameter value (a) is given by:
+
+    .. math::
+        a = \exp{\beta \cdot x}
+
+    Parameters
+    ----------
+    beta : np.ndarray
+        Regression coefficients
+    x : np.ndarray
+        Covariate values
+
+    Returns
+    -------
+    float
+        Parameter value
+    """
+    return np.exp(np.dot(beta, x))
+
+
+def logistic(x):
+    """
+    # TODO: unused
+    """
+    return 1 / (1 + np.exp(-x))
+
+
+def h_parameter_creator(gamma, x):
+    """
+    # TODO: unused
+    """
+    return logistic(np.dot(gamma, x))
 
 
 def construct_matrix(n0, a, r):
@@ -90,6 +125,7 @@ def solve_system_p(t, n0, a, r, p_zero):
 
     return p
 
+
 def solve_system_simple_h_simplex(n_prey_initial, a, r):
     """
     Solve the system of equations for a given number of prey, attack rate, and 1/handling time.
@@ -131,54 +167,13 @@ def log_likelihood_single_fish(
     Returns:
         float: Log-likelihood for the single fish.
     """
-    a = likelihood.a_parameter_creator(beta, x_a)
+    a = a_parameter_creator(beta, x_a)
     # should be a_parameter_creator here as the r parameter is bounded below at zero
-    # note this is different to the above model
-    r = likelihood.a_parameter_creator(gamma, x_h)
+    # note this is different to the other model
+    r = a_parameter_creator(gamma, x_h)
     p_eaten = solve_system_simple_h_simplex(n_prey_initial, a, r)
 
-    # print(a, r)
-
-    ### Obtaining negative values
-    p_eaten[p_eaten<1e-10] = 1e-10
-
-    return np.log(p_eaten[n_prey_eaten])  # Take the log for log-likelihood
-
-
-def log_likelihood_single_fish_ar(
-    n_prey_eaten: int, n_prey_initial: np.ndarray, 
-    a, r,
-) -> float:
-    """
-    Compute the log-likelihood for a single fish.
-    
-    Parameters:
-        n_prey_eaten (int): Number of prey eaten.
-        n_prey_initial (np.ndarray): Initial prey counts.
-        beta (np.ndarray): Coefficients for 'a'.
-        gamma (np.ndarray): Coefficients for 'h'.
-        x_a (np.ndarray): Features for 'a'.
-        x_h (np.ndarray): Features for 'h'.
-    
-    Returns:
-        float: Log-likelihood for the single fish.
-    """
-    p_eaten = solve_system_simple_h_simplex(n_prey_initial, a, r)
-
-    # print(a, r)
-
-    ### Obtaining negative values
-    p_eaten[p_eaten<1e-10] = 1e-10
-
-    return np.log(p_eaten[n_prey_eaten])  # Take the log for log-likelihood
-
-
-def log_likelihood_single_fish_ar_fast(
-    n_prey_eaten: int, n_prey_initial: np.ndarray, 
-    a, r, fast_model       
-):
-    p_eaten = fast_model[n_prey_initial].predict([[a, r]])[0]
-
+    # Avoid obtaining negative values
     p_eaten[p_eaten<1e-10] = 1e-10
 
     return np.log(p_eaten[n_prey_eaten])  # Take the log for log-likelihood
@@ -205,214 +200,17 @@ def log_likelihood_all_fish(
     """
 
     log_likelihood = 0.0
+    fish_specific_log_likelihoods = []
     for n_prey_eaten, n_prey_initial, x_a, x_h in zip(
         ns_prey_eaten, ns_prey_initial, X_a.to_numpy(), X_h.to_numpy()
     ):
-        log_likelihood += log_likelihood_single_fish(
+        ll = log_likelihood_single_fish(
             n_prey_eaten, n_prey_initial, beta, gamma, x_a, x_h
         )
+
+        log_likelihood += ll
         
         # save fish-specific log likelihoods
-        
+        fish_specific_log_likelihoods.append(ll)
 
-    return log_likelihood
-
-
-def log_likelihood_all_fish_ar(
-    ns_prey_eaten: np.ndarray, ns_prey_initial: np.ndarray, 
-    a, r,
-) -> float:
-    """
-    Compute the total log-likelihood for all fish.
-    
-    Parameters:
-        ns_prey_eaten (np.ndarray): Array of prey eaten counts for all fish.
-        ns_prey_initial (np.ndarray): Array of initial prey counts for all fish.
-        beta (np.ndarray): Coefficients for 'a'.
-        gamma (np.ndarray): Coefficients for 'h'.
-        X_a (pd.DataFrame): Feature matrix for 'a'.
-        X_h (pd.DataFrame): Feature matrix for 'h'.
-    
-    Returns:
-        float: Total log-likelihood across all fish.
-    """
-    log_likelihood = 0.0
-    for n_prey_eaten, n_prey_initial in zip(
-        ns_prey_eaten, ns_prey_initial
-    ):
-        log_likelihood += log_likelihood_single_fish_ar(
-            n_prey_eaten, n_prey_initial, a, r
-        )
-    return log_likelihood
-
-
-def log_likelihood_all_fish_ar_weights(
-    ns_prey_eaten: np.ndarray, ns_prey_initial: np.ndarray, 
-    a, r_constant, r_trend, weights, fast_model=None
-) -> float:
-    """
-    Compute the total log-likelihood for all fish.
-    
-    Parameters:
-        ns_prey_eaten (np.ndarray): Array of prey eaten counts for all fish.
-        ns_prey_initial (np.ndarray): Array of initial prey counts for all fish.
-        beta (np.ndarray): Coefficients for 'a'.
-        gamma (np.ndarray): Coefficients for 'h'.
-        X_a (pd.DataFrame): Feature matrix for 'a'.
-        X_h (pd.DataFrame): Feature matrix for 'h'.
-    
-    Returns:
-        float: Total log-likelihood across all fish.
-    """
-    log_likelihood = 0.0
-    for n_prey_eaten, n_prey_initial, we in zip(
-        ns_prey_eaten, ns_prey_initial, weights
-    ):
-        if fast_model is None:
-            log_likelihood += log_likelihood_single_fish_ar(
-            n_prey_eaten, n_prey_initial, a, np.exp(r_constant + r_trend * we)
-         )
-        else:
-            log_likelihood += log_likelihood_single_fish_ar_fast(
-                n_prey_eaten, n_prey_initial, a, np.exp(r_constant + r_trend * we), fast_model
-            )
-    return log_likelihood
-
-
-
-def log_likelihood_all_fish_ar_weights_exp(
-    ns_prey_eaten: np.ndarray, ns_prey_initial: np.ndarray, 
-    a, r_constant, r_trend, condH, condH6, weights, acc_condH, acc_condH_6,
-) -> float:
-    """
-    Compute the total log-likelihood for all fish.
-    
-    Parameters:
-        ns_prey_eaten (np.ndarray): Array of prey eaten counts for all fish.
-        ns_prey_initial (np.ndarray): Array of initial prey counts for all fish.
-        beta (np.ndarray): Coefficients for 'a'.
-        gamma (np.ndarray): Coefficients for 'h'.
-        X_a (pd.DataFrame): Feature matrix for 'a'.
-        X_h (pd.DataFrame): Feature matrix for 'h'.
-    
-    Returns:
-        float: Total log-likelihood across all fish.
-    """
-    log_likelihood = 0.0
-    for n_prey_eaten, n_prey_initial, we, acc_condH_i, acc_condH_6_i in zip(
-        ns_prey_eaten, ns_prey_initial, weights, acc_condH, acc_condH_6
-    ):
-        log_likelihood += log_likelihood_single_fish_ar(
-            n_prey_eaten, n_prey_initial, a, np.exp(r_constant + r_trend * we + condH * acc_condH_i + condH6 * acc_condH_6_i)
-        )
-    return log_likelihood
-
-
-def create_parameter_values(as_values=None, rs_values=None):
-
-    if as_values is None:
-        # User-defined parameters
-        sigma_a = 0.1  # Standard deviation for noise added to as_values
-        as_values= np.exp(np.linspace(np.log(0.05), np.log(600), 200))  # Exponential sequence
-        as_values = as_values + np.random.normal(0, sigma_a, len(as_values))
-        as_values = np.maximum(as_values, 1e-8)  # Ensure all values > 0
-
-    if rs_values is None:
-        sigma_h = 0.02  # Standard deviation for noise added to hs_values
-        hs_values = np.exp(np.linspace(np.log(0.01), np.log(5), 200))  # Exponential sequence
-        hs_values = hs_values + np.random.normal(0, sigma_h, len(hs_values))
-        rs_values = np.clip(hs_values, 0, 1)  # Ensure values between 0 and 1
-
-    # Create a grid of all combinations
-    parameters = pd.DataFrame(
-        [(a, h,) for a in as_values for h in rs_values],
-        columns=['a', 'r',]
-    )
-
-    return parameters
-
-
-def create_training_data(ar_parameters, n):
-    
-    m_simplices = np.zeros((len(ar_parameters), n + 1))
-
-    # Loop through each row in parameters
-    for i, row in ar_parameters.iterrows():
-        # Solve the system
-        ps = solve_system_simple_h_simplex(
-            n, 
-            row['a'], 
-            row['r']
-        )
-        
-        # Convert to numpy array and handle numerical underflow
-        ps = np.array(ps)
-        ps[ps < 0] = abs(ps[ps < 0])  # Replace negative values with their absolute
-        
-        # Pad with zeros if needed
-        if len(ps) < n + 1:
-            ps = np.pad(ps, (0, n + 1 - len(ps)), constant_values=0)
-        
-        # Assign to matrix
-        m_simplices[i, :] = ps
-
-    # Check row sums
-    rsums = m_simplices.sum(axis=1)
-    assert np.isclose(rsums.sum(), len(m_simplices)), "Sum of row sums does not match number of rows"
-
-    return m_simplices
-
-
-
-
-def fast_log_likelihood_all_fish(ns_prey_eaten, ns_prey_initial, beta, gamma, X_a, X_h, models):
-    log_likelihood = 0.0
-
-    all_as = []
-    all_rs = []
-    all_ns = []
-    for n_prey_eaten, n_prey_initial, x_a, x_h in zip(
-        ns_prey_eaten, ns_prey_initial, X_a.to_numpy(), X_h.to_numpy()
-    ):
-        a = fastprey.a_parameter_creator(beta, x_a)
-        r = fastprey.a_parameter_creator(gamma, x_h)
-
-        # print(a, r)
-
-        all_as.append(a)
-        all_rs.append(r)
-        all_ns.append(n_prey_initial)
-
-    all_as = np.asarray(all_as)[:, np.newaxis]
-    all_rs = np.asarray(all_rs)[:, np.newaxis]
-    all_ns = np.asarray(all_ns)
-
-    i = 0
-
-    for n in sorted(list(set(all_ns))):
-
-        a = all_as[np.where(all_ns == n)]
-        r = all_rs[np.where(all_ns == n)]
-
-        
-
-
-        simplices = models[n].predict(np.concatenate((a, r), axis=1))
-
-        for simplex in simplices:
-            n_prey_eaten = ns_prey_eaten[i]
-            i += 1
-            
-            log_likelihood += fast_log_likelihood_single_fish(
-                    n_prey_eaten, simplex
-            )
-
-    return log_likelihood
-
-
-def fast_log_likelihood_single_fish(n_prey_eaten, simplex):
-
-    ### Obtaining negative values
-    simplex[simplex<1e-10] = 1e-10
-
-    return np.log(simplex[n_prey_eaten])
+    return log_likelihood, fish_specific_log_likelihoods
