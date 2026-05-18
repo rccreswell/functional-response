@@ -66,6 +66,31 @@ list(
              )),
 
   # ------------------------------------------------------------------
+  # Analytical mean curves E[N_eaten(t)] (overlaid on left column)
+  # ------------------------------------------------------------------
+
+  tar_target(t_grid, seq(0, 1, length.out = 80)),
+
+  tar_target(df_mean_curve_search,
+             ctmc_mean_curve_scenario(
+               t_grid      = t_grid,
+               alpha       = a_rate_lower,
+               h_rate      = h_rate_upper,
+               n_prey_low  = N_prey_lower,
+               n_prey_high = N_prey_upper,
+               scenario    = "I. Search-limited"
+             )),
+  tar_target(df_mean_curve_handling,
+             ctmc_mean_curve_scenario(
+               t_grid      = t_grid,
+               alpha       = a_rate_upper,
+               h_rate      = h_rate_lower,
+               n_prey_low  = N_prey_lower,
+               n_prey_high = N_prey_upper,
+               scenario    = "II. Handling-limited"
+             )),
+
+  # ------------------------------------------------------------------
   # Figures
   # ------------------------------------------------------------------
 
@@ -93,13 +118,15 @@ list(
                df_handling_high = df_explanatory_figure_b_iv,
                df_c_search      = df_explanatory_c_i,
                df_c_handling    = df_explanatory_c_ii,
+               df_mean_search   = df_mean_curve_search,
+               df_mean_handling = df_mean_curve_handling,
                n_prey_low       = N_prey_lower,
                n_prey_high      = N_prey_upper
              )),
 
   tar_target(file_plot_explanatory_figure_bc, {
     path <- "outputs/plot_explanatory_figure_bc.pdf"
-    ggsave(path, plot_explanatory_figure_bc, width = 10, height = 8)
+    ggsave(path, plot_explanatory_figure_bc, width = 10, height = 8.5)
     path
   }, format = "file")
 )
