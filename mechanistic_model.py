@@ -29,20 +29,6 @@ def a_parameter_creator(beta, x):
     return np.exp(np.dot(beta, x))
 
 
-def logistic(x):
-    """
-    # TODO: unused
-    """
-    return 1 / (1 + np.exp(-x))
-
-
-def h_parameter_creator(gamma, x):
-    """
-    # TODO: unused
-    """
-    return logistic(np.dot(gamma, x))
-
-
 def construct_matrix(n0, a, r):
     """
     Constructs a matrix based on the given parameters.
@@ -174,7 +160,8 @@ def log_likelihood_single_fish(
     p_eaten = solve_system_simple_h_simplex(n_prey_initial, a, r)
 
     # Avoid obtaining negative values
-    p_eaten[p_eaten<1e-10] = 1e-10
+    # TODO:  Check if this is needed. It seems to have a substantial effect on the loglikelihood values. Removed for now.
+    # p_eaten[p_eaten<1e-10] = 1e-10
 
     return np.log(p_eaten[n_prey_eaten])  # Take the log for log-likelihood
 
