@@ -9,6 +9,7 @@
 # using Pkg; Pkg.add("ExponentialUtilities")
 
 using LinearAlgebra
+using Statistics
 using Turing
 using Distributions
 using Pigeons
@@ -53,15 +54,47 @@ function eaten_probs(n0::Int, a::Real, r::Real)
     return p ./ sum(p)
 end
 
-@model function functional_response(eaten, n_initial, X_a, X_r; prior_sd = 0.1)
+# X_a, X_r are assumed to have a leading column of ones; the intercept is handled
+# separately from the covariate slopes so it can be recentred independently.
+#
+#   * Intercepts recentred to sit in the interior of the saturating count curve.
+#     Over the unit window eaten ~= min(n0, r), so log_r0 ~ log(median eaten) puts
+#     the baseline predator near half of a typical n0 rather than at r=1 (~1 eaten).
+#     a is only weakly identified (fast rate -> flat likelihood), so its intercept
+#     gets a modestly informative prior to keep the sampler off that plateau.
+#   * Hierarchical slopes: tau_a, tau_r are the (half-Normal) scales of the
+#     covariate effects, learned from the data. This resolves the tension between
+#     "enough variation in the covariate effects" and "not too much spread in the
+#     counts" -- tau shrinks when covariates are uninformative and expands when
+#     they are not, instead of us hard-coding a single slope variance.
+@model function functional_response(eaten, n_initial, X_a, X_r;
+                                    log_a0_mean = log(4.0), log_a0_sd = 1.0,
+                                    log_r0_mean = log(20.0), log_r0_sd = 0.5,
+                                    tau_scale = 0.5)
     n_a = size(X_a, 2)
     n_r = size(X_r, 2)
 
-    beta_a ~ filldist(Normal(0.0, prior_sd), n_a)
-    beta_r ~ filldist(Normal(0.0, prior_sd), n_r)
+    a0 ~ Normal(log_a0_mean, log_a0_sd)
+    r0 ~ Normal(log_r0_mean, log_r0_sd)
 
-    a_all = exp.(X_a * beta_a)
-    r_all = exp.(X_r * beta_r)
+    if n_a > 1
+        tau_a ~ truncated(Normal(0.0, tau_scale), 0.0, Inf)
+        beta_a ~ filldist(Normal(0.0, tau_a), n_a - 1)
+        log_a = a0 .+ X_a[:, 2:end] * beta_a
+    else
+        log_a = fill(a0, length(eaten))
+    end
+
+    if n_r > 1
+        tau_r ~ truncated(Normal(0.0, tau_scale), 0.0, Inf)
+        beta_r ~ filldist(Normal(0.0, tau_r), n_r - 1)
+        log_r = r0 .+ X_r[:, 2:end] * beta_r
+    else
+        log_r = fill(r0, length(eaten))
+    end
+
+    a_all = exp.(log_a)
+    r_all = exp.(log_r)
 
     for i in eachindex(eaten)
         p = eaten_probs(n_initial[i], a_all[i], r_all[i])
@@ -72,7 +105,10 @@ end
 
 
 df = CSV.read("data/df_covariates_better_date.csv", DataFrame)
-df.weight2 = df.weight .^ 2
+# Standardize weight (z-score) and use its square, so the linear and quadratic
+# weight terms are on a comparable unit scale and are largely decorrelated.
+df.weight_z = (df.weight .- mean(df.weight)) ./ std(df.weight)
+df.weight_z2 = df.weight_z .^ 2
 nums_prey_eaten = Int.(df.n_prey_eaten)
 nums_prey_initial = Int.(df.n_prey_initial)
 
@@ -86,7 +122,7 @@ a_cols = ["f.acc_condH",
           "f.acc_condH:f.week6",
           "f.acc_condM:f.week6",
           "f.acc_condT:f.week6"]
-r_cols = ["weight", "weight2"]
+r_cols = ["weight_z", "weight_z2"]
 
 X_a = hcat(ones(nrow(df)), Matrix{Float64}(df[:, a_cols]))
 X_r = hcat(ones(nrow(df)), Matrix{Float64}(df[:, r_cols]))
@@ -107,3 +143,11 @@ print(lp(x))
 
 pt = pigeons(target = TuringLogPotential(model), explorer = SliceSampler(), n_chains = 10, n_rounds = 2, record = [traces; round_trip; record_default()])
 chn = Chains(pt)
+
+# Alternative: gradient-based NUTS. Turing can autodiff through exp(A*t), and with
+# the recentred intercepts + hierarchical slopes the geometry is far better
+# conditioned than the old wide-Gaussian setup, so NUTS should mix well and give
+# an honest R-hat/ESS. Run several chains from dispersed starts:
+#   chn_nuts = sample(model, NUTS(0.8), MCMCThreads(), 1000, 4)
+# If NUTS still struggles (e.g. funnel from the tau hierarchy), a non-centred
+# parameterisation of beta_a/beta_r is the usual next step.

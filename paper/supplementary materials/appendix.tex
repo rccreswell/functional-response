@@ -1,0 +1,92 @@
+\section{Deriving the probability distribution over number of prey eaten }
+
+To perform Bayesian inference for our model, we need to calculate the likelihood, which is composed of individual (assumed independent) contributions from each experimental replicate.
+
+Each replicate begins with an initial number of prey, denoted $N_0$. For a given $N_0$, we seek the probability that at time $t=1 \text{ hour}$ (the end of the experiment), there are $N$ prey remaining, where $0 \leq N \leq N_0$. To compute this, we model the time evolution of the system using the \emph{chemical master equation} (CME), which describes how the probability of each system state changes over time.
+
+We represent the predator state using a binary variable:
+
+\begin{equation}
+s =
+\begin{cases}
+1 & \text{if the predator is in the active preying (AP) state}, \\
+0 & \text{if the predator is in the between-preying (BP) state}.
+\end{cases}
+\end{equation}
+
+The full system state is given by the vector $(N, s)$, where $N$ is the number of prey remaining. Let $p_{N,s}(t)$ denote the probability that the system is in state $(N,s)$ at time $t$. The CME defines a system of ordinary differential equations governing the evolution of $p_{N,s}(t)$. For $0 \leq N \leq N_0$, the equations take the form:
+\begin{align}
+\label{eq:ap}
+\frac{d}{dt} p_{N,1}(t) &= -a N \, p_{N,1}(t) + r \, p_{N,0}(t), \\
+\label{eq:bp}
+\frac{d}{dt} p_{N,0}(t) &= a (N+1)\, p_{N+1,1}(t) - r \, p_{N,0}(t),
+\end{align}
+
+where $a$ is the prey capture rate and $r$ is the prey handling rate. For $N=0$, eq. \eqref{eq:ap} is modified by removing the outflow term from this state; for $N = N_0$, eq. \eqref{eq:bp} is modified by removing the inflow term from the $(N+1)$th state.
+
+At time $t = 0$, the system starts with all prey present and the predator actively preying:
+
+\[
+p_{N_0,1}(0) = 1, \quad p_{N,s}(0) = 0 \text{ otherwise}.
+\]
+
+Since the system begins in state $(N_0,1)$, the state $(N_0,0)$ is never reached, because entering the BP state requires consuming at least one prey item.
+
+As $t \to \infty$, the system approaches the absorbing state $(0,1)$ corresponding to no prey remaining and the predator still searching -- a hungry fish left in an empty bucket.
+
+\subsection*{Matrix formulation}
+The system of equations can be solved analytically using Fourier transforms, although the length of the solutions, in terms of symbols, grows exponentially with $N_0$. For efficiency, instead, we solve the equations numerically. To solve the system, we stack the state probabilities into a vector:
+\begin{equation}
+\mathbf{p}(t) =
+\begin{pmatrix}
+p_{N_0,0}(t), & p_{N_0,1}(t), & \cdots, & p_{1,0}(t), & p_{1,1}(t), & p_{0,0}(t), & p_{0,1}(t)
+\end{pmatrix}.
+\end{equation}
+
+The CME can then be written as a linear dynamical system:
+\[
+\frac{d}{dt} \mathbf{p}(t) = \boldsymbol{A} \, \mathbf{p}(t),
+\]
+where $\boldsymbol{A}$ is a transition-rate matrix defined by the reaction structure:
+
+\begin{equation}
+\boldsymbol{A} =
+\begin{pmatrix}
+-r & 0 & 0 & 0 & \cdots & 0 & 0 & 0\\
+r & -aN_0 & 0 & 0 & \cdots & 0 & 0 & 0\\
+0 & aN_0 & -r & 0 & \cdots & 0 & 0 & 0\\
+0 & 0 & r & -a(N_0-1) & \ddots & \vdots & \vdots & \vdots\\
+\vdots & \vdots & 0 & a(N_0-1) & \ddots & 0 & 0 & 0\\
+\vdots & \vdots & \vdots & \ddots & \ddots & -a & 0 & 0\\
+0 & 0 & \cdots & 0 & 0 & a & -r & 0\\
+0 & 0 & \cdots & 0 & 0 & 0 & r & 0
+\end{pmatrix}.,
+\end{equation}
+
+The solution is:
+\[
+\mathbf{p}(t) = \exp(\boldsymbol{A} t)\, \mathbf{p}(0),
+\]
+where $\exp(\cdot)$ denotes the matrix exponential.
+
+To obtain the probability distribution over the number of prey remaining, we marginalise over the predator state:
+\[
+P(N,t) = p_{N,0}(t) + p_{N,1}(t).
+\]
+
+Here, $P(N,t)$ is the probability that $N$ prey remain at time $t$.
+
+\subsection*{Likelihood construction}
+
+For a given experimental replicate $i$, suppose $N_i$ prey are observed at time $t=1 \text{ hour}$. The likelihood contribution is:
+\[
+\mathcal{L}_i = P(N_i, t=1),
+\]
+where $P(N_i,t=1)$ is computed via the solution above, using parameters $a$ and $r$ (which depend on covariates through eqs. \eqref{eqn:eqn3} \& \eqref{eqn:eqn4} in the main text).
+
+Assuming independence across replicates, the full likelihood is:
+\[
+\mathcal{L} = \prod_i P(N_i, t=1).
+\]
+
+Because each replicate may have different covariates and initial prey counts $N_0$, the probability $P(N,t)$ must be computed separately for each replicate.

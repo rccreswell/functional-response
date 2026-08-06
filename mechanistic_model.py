@@ -5,6 +5,12 @@ import numpy as np
 from scipy.linalg import expm
 import pandas as pd
 
+try:
+    from joblib import Parallel, delayed
+    _HAVE_JOBLIB = True
+except ImportError:  # parallel path is optional; serial always works
+    _HAVE_JOBLIB = False
+
 
 def a_parameter_creator(beta, x):
     r"""Compute parameter value from regression coefficients.
@@ -196,8 +202,85 @@ def log_likelihood_all_fish(
         )
 
         log_likelihood += ll
-        
+
         # save fish-specific log likelihoods
         fish_specific_log_likelihoods.append(ll)
 
     return log_likelihood, fish_specific_log_likelihoods
+
+
+def _chunk_log_likelihoods(ne_chunk, n0_chunk, beta, gamma, xa_chunk, xh_chunk):
+    """Compute per-fish log-likelihoods for one contiguous chunk of fish.
+
+    Module-level so it is picklable by joblib's process backend. Returns the
+    per-fish values in the chunk's original order.
+    """
+    return [
+        log_likelihood_single_fish(ne, n0, beta, gamma, xa, xh)
+        for ne, n0, xa, xh in zip(ne_chunk, n0_chunk, xa_chunk, xh_chunk)
+    ]
+
+
+def log_likelihood_all_fish_parallel(
+    ns_prey_eaten, ns_prey_initial,
+    beta, gamma, X_a, X_h, n_jobs=-1, n_chunks=None,
+):
+    """Parallel version of :func:`log_likelihood_all_fish`.
+
+    Splits the fish into contiguous chunks evaluated across processes, then
+    reassembles the per-fish log-likelihoods in the original order and sums them
+    with the same left-to-right accumulation as the serial function. Because the
+    per-fish values are computed by the identical ``log_likelihood_single_fish``
+    call and summed in the identical order, the result is bit-for-bit equal to
+    the serial ``log_likelihood_all_fish`` (parallelism only changes *where* each
+    solve runs, never *what* is computed or the reduction order).
+
+    Falls back to the serial implementation if joblib is unavailable or n_jobs==1.
+    """
+    ns_prey_eaten = np.asarray(ns_prey_eaten)
+    ns_prey_initial = np.asarray(ns_prey_initial)
+    X_a = X_a.to_numpy() if hasattr(X_a, "to_numpy") else np.asarray(X_a)
+    X_h = X_h.to_numpy() if hasattr(X_h, "to_numpy") else np.asarray(X_h)
+
+    n_fish = len(ns_prey_eaten)
+
+    if not _HAVE_JOBLIB or n_jobs == 1:
+        fish_lls = _chunk_log_likelihoods(
+            ns_prey_eaten, ns_prey_initial, beta, gamma, X_a, X_h
+        )
+    else:
+        n_workers = joblib_effective_workers(n_jobs)
+        if n_chunks is None:
+            n_chunks = n_workers
+        n_chunks = max(1, min(n_chunks, n_fish))
+        bounds = np.linspace(0, n_fish, n_chunks + 1).astype(int)
+
+        # max_nbytes=None disables input memmapping. The chunk arrays are tiny,
+        # so memmapping buys nothing but churns /var/folders temp dirs on every
+        # call -- over the >100k calls of a long MCMC run that eventually faults
+        # loky's resource tracker and kills the process. Disabling it makes long
+        # runs stable.
+        chunk_results = Parallel(n_jobs=n_jobs, max_nbytes=None)(
+            delayed(_chunk_log_likelihoods)(
+                ns_prey_eaten[a:b], ns_prey_initial[a:b],
+                beta, gamma, X_a[a:b], X_h[a:b],
+            )
+            for a, b in zip(bounds[:-1], bounds[1:])
+        )
+        # Reassemble in original fish order.
+        fish_lls = [ll for chunk in chunk_results for ll in chunk]
+
+    # Sum in the same order as the serial accumulation, for bit-identical totals.
+    log_likelihood = 0.0
+    for ll in fish_lls:
+        log_likelihood += ll
+
+    return log_likelihood, fish_lls
+
+
+def joblib_effective_workers(n_jobs):
+    """Resolve joblib's n_jobs (-1 => all cores) to a positive worker count."""
+    import os
+    if n_jobs is None or n_jobs < 0:
+        return os.cpu_count() or 1
+    return max(1, n_jobs)

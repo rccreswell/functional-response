@@ -1,0 +1,8 @@
+statistic,observed,model_mean,model_2.5%,model_97.5%,bayes_p_ge,bayes_p_2sided
+full-consumption P(eaten=n0),0.2904,0.297,0.2769,0.3174,0.73,0.54
+zero-consumption P(eaten=0),0.021,0.0134,0.006,0.0225,0.115,0.23
+overdispersion sum Var(eaten|n0),281.1322,235.7068,210.1117,263.5427,0.0,0.0
+mean eaten,10.3428,10.1996,9.7991,10.5169,0.235,0.47
+full-consumption (light weight),0.1404,0.1509,0.119,0.183,0.785,0.43
+full-consumption (moderate weight),0.2757,0.2615,0.2289,0.2944,0.24,0.48
+full-consumption (heavy weight),0.4658,0.4885,0.4475,0.5298,0.865,0.27
