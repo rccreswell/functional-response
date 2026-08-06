@@ -1,0 +1,17 @@
+panel,condition,duration,handling_min,handling_lo,handling_hi,pct_vs_ambient,pct_lo,pct_hi,eaten_n0_40,eaten_lo,eaten_hi
+B: acclimation (exp=Ambient),Ambient,1 week,5.42,4.97,5.93,0.0,0.0,0.0,11.5,10.6,12.5
+B: acclimation (exp=Ambient),Ambient,6 weeks,5.79,5.28,6.37,0.0,0.0,0.0,10.8,10.0,11.8
+B: acclimation (exp=Ambient),Warmed,1 week,3.51,3.21,3.83,-35.2,-41.4,-28.6,17.2,15.8,18.7
+B: acclimation (exp=Ambient),Warmed,6 weeks,7.9,7.13,8.74,36.4,21.9,52.5,8.2,7.5,9.0
+B: acclimation (exp=Ambient),Turbid,1 week,3.76,3.39,4.17,-30.6,-37.7,-22.9,16.1,14.7,17.7
+B: acclimation (exp=Ambient),Turbid,6 weeks,4.12,3.76,4.54,-28.8,-35.6,-21.5,14.8,13.5,16.2
+B: acclimation (exp=Ambient),Mixed,1 week,3.63,3.27,4.02,-33.0,-40.0,-25.5,16.6,15.3,18.4
+B: acclimation (exp=Ambient),Mixed,6 weeks,5.09,4.63,5.59,-12.2,-21.1,-2.2,12.2,11.2,13.3
+A: experimental (acc=Ambient),Ambient,1 week,5.42,4.97,5.93,,,,,,
+A: experimental (acc=Ambient),Ambient,6 weeks,5.79,5.28,6.37,,,,,,
+A: experimental (acc=Ambient),Warmed,1 week,5.94,5.46,6.48,,,,,,
+A: experimental (acc=Ambient),Warmed,6 weeks,6.34,5.83,6.92,,,,,,
+A: experimental (acc=Ambient),Turbid,1 week,6.12,5.61,6.71,,,,,,
+A: experimental (acc=Ambient),Turbid,6 weeks,6.54,5.97,7.18,,,,,,
+A: experimental (acc=Ambient),Mixed,1 week,6.26,5.75,6.85,,,,,,
+A: experimental (acc=Ambient),Mixed,6 weeks,6.7,6.13,7.31,,,,,,

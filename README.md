@@ -115,5 +115,15 @@ python loo_compare_all.py                                    # 4-way base-vs-mix
 
 `ppc_mixture.py --model 2` writes: the per-`n0` posterior-predictive grid, the actual-vs-simulated violin PPCs (by weight tertile / acclimation / experimental condition), the warmed×week-6 PPC, the discrepancy-statistic figure, the LOO-PIT calibration plot, and `outputs/model_2a_bayes_pvalues.csv` (test statistic, observed value, model mean, 95% interval, and Bayesian p-values). `loo_compare_all.py` writes `outputs/loo_comparison.csv` (elpd_loo, p_loo, elpd difference, SE, model weight, and bad-Pareto-k count for all four models).
 
+### Paper tables (deterministic)
+```bash
+python make_results_table.py   # outputs/model_2a_results_table.{csv,tex}: handling time (60/r, min)
+                               # and predicted prey eaten (n0=40) per condition x week, median-weight fish,
+                               # with 95% CIs and % change vs ambient. Fixed thinning -> fully reproducible.
+python make_supp_tables.py     # outputs/table_loo.tex (4-model PSIS-LOO) and outputs/table_bayes_p.tex
+                               # (discrepancy p-values), generated from the committed result CSVs.
+```
+Draft LaTeX for the manuscript lives in `paper/draft_attack_unlimited.tex` (voracious-subpopulation Results subsection) and `paper/draft_supplementary_ppc.tex` (supplementary PPC section). Model-2a PPC figures are copied into `paper/figures/`.
+
 ## R: plotting
 This code takes the `csv` files from the inference and uses these to plot the data.

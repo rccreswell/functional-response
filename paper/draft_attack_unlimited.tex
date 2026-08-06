@@ -1,0 +1,42 @@
+% DRAFT subsection for the Results -- "attack-unlimited" / voracious mixture.
+% Numbers are from the converged Model 2a posterior (outputs/model_2a_posterior.csv,
+% outputs/model_2a_bayes_pvalues.csv, outputs/loo_comparison.csv). Cross-references
+% (Fig./Table/Supp.) are placeholders to be wired to the manuscript.
+
+\subsection{Prey searching is negligible for most fish}
+
+Posterior predictive checks revealed one systematic failure of the two-state
+model: it substantially under-predicted the number of fish that consumed
+\emph{all} of their available prey. Across prey densities, 29\% of fish cleared
+their tanks, whereas the two-state model predicted only $\approx$8\%
+(Supplementary Fig.~S\ref{supp:ppc}). This ``full-consumption'' discrepancy was
+strongest among heavier individuals.
+
+To accommodate this behaviour, we extended the model to include a latent
+subpopulation of \emph{voracious} foragers, for whom prey capture is effectively
+instantaneous---formally, the limit $a \to \infty$ of eq.~(\ref{eqn:eqn1}). In
+this limit a fish is constrained only by prey handling, and the number of prey
+eaten during a trial follows a shifted, right-truncated Poisson distribution,
+$\min\!\big(N_0,\, 1 + \mathrm{Poisson}(r)\big)$ (derivation in
+\hyperlink{supp:S1}{Supplementary File S1}). Each fish belongs to the voracious
+class with a weight-dependent probability $\pi$, where
+$\mathrm{logit}(\pi) = \gamma_0 + \gamma_w\,\mathrm{weight}$, and the latent class
+membership is marginalised out of the likelihood. This mixture resolved the
+full-consumption misfit (posterior-predictive $p = 0.73$;
+Supplementary Fig.~S\ref{supp:ppc}) and was decisively favoured over the
+two-state model by leave-one-out cross-validation, which also became reliable
+only under the mixture (Table~\ref{tab:model_comparison}).
+
+Strikingly, the fitted model estimated that the great majority of fish---92\%
+(95\% credible interval: 90--95\%)---belonged to the voracious class, and this
+proportion increased with body weight, from $\approx$78\% for the lightest fish
+to $\approx$100\% for the heaviest (Fig.~\ref{fig:voracious}). In other words,
+for almost all individuals the time spent searching for prey was negligible
+relative to handling time, so that consumption was governed almost entirely by
+the rate of prey handling, $r$. This provides a quantitative basis for the
+observation that searching time varied little across treatments: within the
+confined experimental arenas, prey encounter was so rapid that the searching
+phase contributed negligibly to feeding for the overwhelming majority of fish.
+Importantly, allowing for this subpopulation did not change our conclusions about
+how the treatments affected feeding, because the treatment covariates act on the
+handling rate $r$, which is shared by both components of the mixture.
