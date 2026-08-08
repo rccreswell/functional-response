@@ -1,0 +1,15 @@
+\begin{tabular}{lllrrrrrrr}
+\toprule
+&&&&&&&\multicolumn{3}{c}{Full consumption by weight} \\
+\cmidrule(l){8-10}
+Covariates on $a$ & Covariates on $r$ & Mixture & $P(\text{eaten}{=}N_0)$ & $P(\text{eaten}{=}0)$ & Disp. & Mean & Light & Moderate & Heavy \\
+\midrule
+\multicolumn{3}{l}{\textit{Observed value}} & 0.290 & 0.021 & 281.1 & 10.343 & 0.140 & 0.276 & 0.466 \\
+\midrule
+constant & treatments + weight & Yes & 0.53 & 0.22 & 0.00 & 0.47 & 0.38 & 0.59 & 0.21 \\
+treatments + weight & constant & Yes & 0.90 & 0.22 & 0.00 & 0.42 & 0.70 & 0.74 & 0.95 \\
+treatments + weight & constant & No & 0.00 & 0.00 & 0.00 & 0.72 & 0.00 & 0.00 & 0.00 \\
+constant & treatments + weight & No & 0.00 & 0.00 & 0.00 & 0.65 & 0.00 & 0.00 & 0.00 \\
+\bottomrule
+\end{tabular}
+% rows below the observed line are two-sided posterior-predictive p-values

@@ -56,7 +56,7 @@ def _style(vp, c):
         b.set_facecolor(c); b.set_alpha(0.85); b.set_edgecolor('0.3'); b.set_linewidth(0.7)
 
 
-def violin_facets(tag, sims, labels_per_fish, levels, ftitle, fname):
+def violin_facets(tag, sims, labels_per_fish, levels, ftitle, fname, points=True):
     fig, axes = plt.subplots(1, len(levels), figsize=(4.8 * len(levels), 6), sharey=True)
     for ax, lev in zip(np.atleast_1d(axes), levels):
         lmask = labels_per_fish == lev
@@ -68,7 +68,8 @@ def violin_facets(tag, sims, labels_per_fish, levels, ftitle, fname):
             _style(ax.violinplot([sim], positions=[i + 0.2], widths=0.36, showextrema=False), ORANGE)
             if len(actual) >= 3 and len(set(actual.tolist())) >= 2:
                 _style(ax.violinplot([actual], positions=[i - 0.2], widths=0.36, showextrema=False), GREEN)
-            ax.scatter(np.full(len(actual), i - 0.2), actual, s=6, color='0.25', alpha=0.45, zorder=3)
+            if points:
+                ax.scatter(np.full(len(actual), i - 0.2), actual, s=6, color='0.25', alpha=0.45, zorder=3)
         ax.set_title(lev, fontsize=12, bbox=dict(boxstyle='round,pad=0.3', fc='0.92', ec='0.6'))
         ax.set_xticks(range(len(N0_LEVELS))); ax.set_xticklabels(N0_LEVELS); ax.set_xlabel('# initial prey')
     np.atleast_1d(axes)[0].set_ylabel('# prey eaten')
@@ -113,7 +114,7 @@ def run(model_id, n_draws=200):
     # ---- (2) violin PPCs: weight tertile / acc / exp ----
     tert = np.asarray(pd.qcut(WEIGHT, 3, labels=['light', 'moderate', 'heavy']))
     violin_facets(tag, sims, tert, ['light', 'moderate', 'heavy'], 'weight tertile',
-                  f'outputs/{tag}_ppc_violin.png')
+                  f'outputs/{tag}_ppc_violin.png', points=False)   # Figure 2: no data-point overlay
     violin_facets(tag, sims, np.array([COND_MAP[a] for a in ACC]), COND_ORDER,
                   'acclimation condition', f'outputs/{tag}_ppc_violin_acc.png')
     violin_facets(tag, sims, np.array([COND_MAP[e] for e in EXP]), COND_ORDER,

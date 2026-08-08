@@ -86,7 +86,6 @@ def make(model_id):
     handles = [plt.Line2D([], [], color=c, marker='s', ls='', ms=9, label=l) for _, l, c in DUR]
     fig.legend(handles=handles, title='Acclimation duration', loc='lower center', ncol=2,
                frameon=False, bbox_to_anchor=(0.5, -0.02))
-    mname = 'Model 2a (mixture; conditions on r)' if model_id == 2 else 'Model 1a (mixture; conditions on a)'
     fig.tight_layout(rect=[0, 0.03, 1, 0.98])
     fig.savefig(f'outputs/{tag}_fig3.png', dpi=120, bbox_inches='tight')
     print(f"saved outputs/{tag}_fig3.png", flush=True)

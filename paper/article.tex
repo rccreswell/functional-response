@@ -169,39 +169,47 @@ We allowed the rates of prey capture, \begin{math}a\end{math}, and rate of prey 
 
 where \begin{math}x_a\end{math} is a vector of covariates associated with variation in the rate of prey capture and \begin{math}x_r\end{math} is a vector of covariates associated with variation in the rate of prey handling. By fitting the model to our experimental data, we estimate \begin{math} c_a, \beta_a, c_r, \beta_r\end{math} , where \begin{math}c_a\end{math} and \begin{math}c_r\end{math} are scalar constants, and \begin{math}\beta_a\end{math} and \begin{math}\beta_r\end{math} are vectors of coefficients of the same length as \begin{math}x_a\end{math} and \begin{math}x_r\end{math}, respectively. 
 
-It was unclear a priori which sets of covariates should be associated with either prey capture (i.e.\ eq.\ \ref{eqn:eqn3}) or prey handling (i.e.\ eq.\ \ref{eqn:eqn4}), so we fitted two models to the data. We chose these two models since we viewed each as equally biologically plausible. These two models included: 
+It was unclear a priori which sets of covariates should be associated with either prey capture (i.e.\ eq.\ \ref{eqn:eqn3}) or prey handling (i.e.\ eq.\ \ref{eqn:eqn4}), so we considered two covariate structures, each of which we viewed as equally biologically plausible:
 \begin{itemize}
   \item A model where all covariates except those relating to weight were associated with variations in \begin{math}a\end{math} and only the weight variables were associated with variations in \begin{math}r\end{math};
   \item A model where \begin{math}a\end{math} was assumed to be constant (i.e.\ eq.\ \ref{eqn:eqn3} became just \begin{math}\log a = c_a\end{math}) and all covariates were assumed to be associated with variations in \begin{math}r\end{math}.
   \end{itemize}
 
-To choose between these two models, we performed model comparison (described in the \textit{inference} section).
+\subsubsection{A subpopulation of voracious foragers}
+
+Initial fits of the two-state model systematically under-predicted the fraction of fish that consumed \textit{all} of their available prey. This suggested that, for a substantial share of individuals, prey capture was effectively instantaneous relative to handling, that is, the searching phase contributed negligibly to the outcome. We then extended each model to include a latent subpopulation of \textit{voracious} foragers, corresponding to the limit \begin{math}a \to \infty\end{math} of eq.\ (\ref{eqn:eqn1}). In this limit a fish is constrained only by prey handling, and the number of prey eaten in a trial follows a shifted, right-truncated Poisson distribution, \begin{math}\min\!\big(N_0,\, 1 + \mathrm{Poisson}(r)\big)\end{math} (derived in \S\ref{app:voracious}). Each fish belongs to the voracious class with a weight-dependent probability \begin{math}\pi\end{math}, where \begin{math}\mathrm{logit}(\pi) = \gamma_0 + \gamma_w\,\mathrm{weight}\end{math}, and the latent class membership is marginalised out of the likelihood.
+
+We fitted each of the two covariate structures both with and without this voracious-forager component (models with this component we term \textit{mixture} models), giving four candidate models, and chose between them by model comparison (described in the \textit{inference} section).
 
 \subsubsection{Inference}
 In each of our experimental replicates, we record only the number of prey remaining \textit{at the end} of 1 hour. Each experiment had potentially a range of covariates and differing numbers of initial prey, \begin{math}N_0\end{math}. We fitted our models to all these data simultaneously.
 
 
-We performed Bayesian inference to infer \begin{math} (c_a, \beta_a, c_r, \beta_r)\end{math} for each of our two models. Bayesian inference requires a prior probability distribution and a likelihood: we chose uninformative independent standard Gaussian (mean $0$, standard deviation $1$) priors on each of our inferred parameters’ values. Specifying the likelihood required determining the probability distribution over the number of prey remaining at the end of a given experimental replicate. In \colorbox{yellow}{\hyperlink{supp:S1}{Supplementary File S1}}, we explain how this probability distribution was derived. There was negligible measurement error in the number of prey remaining at the end of each experimental replicate (this simply involved counting the number of bloodworms still alive). Uncertainty in the final number of prey remaining then stemmed only from variation inherent in the underlying stochastic reaction equation system.  
+We performed Bayesian inference to infer \begin{math} (c_a, \beta_a, c_r, \beta_r)\end{math} for each of our models. Bayesian inference requires a prior probability distribution and a likelihood. Rather than adopt nominally uninformative priors, we used weakly informative priors calibrated so that the distribution over prey consumption they induce is consistent with the range observed in the data (a prior predictive check; see Fig. \ref{supp:prior}). Specifically, we placed Gaussian priors \begin{math}c_a \sim \mathcal{N}(\log 4,\, 1^2)\end{math} and \begin{math}c_r \sim \mathcal{N}(\log 20,\, 0.5^2)\end{math} on the log-rate intercepts, and independent \begin{math}\mathcal{N}(0,\, (0.75/\sqrt{p})^2)\end{math} priors on each of the \begin{math}p\end{math} regression coefficients in \begin{math}\beta_a\end{math} and \begin{math}\beta_r\end{math}; continuous covariates (fish weight and its square) were standardised before inference.  Each coefficient's prior standard deviation is set to $0.75/\sqrt{p}$ so that the $p$ standardised covariates together contribute a fixed total spread ($\approx 0.75$) to the log-rate regardless of how many there are, keeping the prior-predictive prey counts calibrated and the models comparable; the 0.75 is the target aggregate prior standard deviation of the covariates' combined contribution to the log-rate, chosen so that at one prior standard deviation they jointly shift the rate by up by a factor of $e^{0.75}\approx 2$.
+
+Priors for the voracious-forager component are given below. Specifying the likelihood required determining the probability distribution over the number of prey remaining at the end of a given experimental replicate. In \S\ref{sec:CME_derivation}, we explain how this probability distribution was derived. There was negligible measurement error in the number of prey remaining at the end of each experimental replicate (this simply involved counting the number of bloodworms still alive). Uncertainty in the final number of prey remaining then stemmed only from variation inherent in the underlying stochastic reaction equation system.  
+
+For the mixture models, we also set priors on the parameters that determined the voracious-feeding-behaviour, $\pi$. We placed weakly-informative $\mathcal{N}(-1,1.5^2)$ and $\mathcal{N}(0,1.5^2)$ priors on $\gamma_0$ and $\gamma_w$; the standard deviation of $1.5$ renders the induced prior on the voracious probability approximately uniform on $(0,1)$ rather than concentrated at the boundaries, while the intercept mean of $-1$ encodes a weak prior expectation that voracious foragers are a minority (the prior mean for $\pi\approx 0.35$ and a prior on $\mathbf{P}(\pi < 0.5)\approx 0.70$).
 
 
 \begin{table*}[!t]%
 \centering %
-\caption{Model comparison results. The model in the top row has the point estimate of the best fit to the data. ELPD stands for the expected log-pointwise predictive density and is a measure of model fit (higher values indicate better fit) and Delta ELPD is the difference in ELPD versus the best fitting model; SE Delta(ELPD) represents the standard error of the component-wise difference in ELPD versus the best fitting model. Z represents a z-statistic calculated by dividing the previous two columns, and p indicates a p value versus the null hypothesis that there is no difference in fit versus the best fitting model.\label{tab:model_comparison}}%
-\begin{tabular*}{\textwidth}{@{\extracolsep\fill}lcccc@{\extracolsep\fill}}
+\caption{Model comparison by leave-one-out cross-validation (PSIS-LOO). Each model places the treatment covariates on either the attack rate \begin{math}a\end{math} or the handling rate \begin{math}r\end{math}, with or without a voracious-forager mixture component. ``Treatments + weight'' denotes the full covariate set on the log rate: acclimation condition, experimental condition, acclimation duration (1 vs.\ 6 weeks), the acclimation-by-duration interaction, and fish weight (linear and quadratic, standardised); ``constant'' means that rate has an intercept only. \begin{math}\widehat{\mathrm{elpd}}_{\mathrm{LOO}}\end{math} is the expected log-pointwise predictive density (higher is better) and \begin{math}\Delta\mathrm{elpd}\end{math} is the difference versus the best-fitting model, with its standard error. Rows are ordered best to worst.\label{tab:model_comparison}}%
+\begin{tabular*}{\textwidth}{@{\extracolsep\fill}lllrrrr@{\extracolsep\fill}}
 \toprule
-\textbf{Model} & \textbf{Delta ELPD}  & \textbf{SE Delta (ELPD)}  & \textbf{z}  & \textbf{p} \\
+\textbf{Covariates on }\begin{math}a\end{math} & \textbf{Covariates on }\begin{math}r\end{math} & \textbf{Mixture} & \begin{math}\widehat{\mathrm{elpd}}_{\mathrm{LOO}}\end{math} & \textbf{SE} & \begin{math}\Delta\mathrm{elpd}\end{math} & \textbf{SE(\begin{math}\Delta\end{math})} \\
 \midrule
-All h + w + w\begin{math}^{2}\end{math} & -  & -  & -  & -  \\
-Mostly a + w + w\begin{math}^{2}\end{math} & -103.11  & 36.20  & -2.85  & \begin{math}<\end{math}0.01   \\
-All h + w & -127.96  & 23.59  & -5.43  & \begin{math}<\end{math}0.01   \\
-Mostly a + w & -208.19 & 36.80 & -5.56 & \begin{math}<\end{math}0.01  \\
+constant & treatments + weight & Yes & -1513 & 45 & -- & -- \\
+treatments + weight & constant & Yes & -1690 & 51 & 177 & 24 \\
+treatments + weight & constant & No & -2749 & 217 & 1236 & 203 \\
+constant & treatments + weight & No & -2831 & 228 & 1318 & 213 \\
 \bottomrule
 \end{tabular*}
 
 \end{table*}
 
 
-To estimate the \textit{posterior distribution} over the model parameters, we used Markov chain Monte Carlo (MCMC) -- specifically, the Haario-Bardenet MCMC algorithm as implemented in PINTS \citep{michaelclerxProbabilisticInferenceNoisy2019}. To initialise the Markov chains, we performed a set of 10 optimisations using the CMAES algorithm as implemented in PINTS and chose the set which had the highest log-posterior score; we chose this approach to initialising the chains as it reduced the time taken for the Markov chains to appear converged versus an alternative approach where chains were initialised by sampling from the prior; this two-step approach potentially risks biasing Markov chains to a particular mode, although we found that often the chains did explore widely during sampling. We performed a total of 50,000 MCMC iterations, and discarded the first 25,000 as burn-in. To assess convergence, we required that the Gelman R-hat statistic \begin{math}\hat{R} < 1.05\end{math} for all model parameters \citep{vehtariPracticalBayesianModel2017}. Tables of parameter estimates with quantiles and $\hat{R}$ are given in \colorbox{yellow}{\hyperlink{supp:S3}{Supplementary File S3}}.
+To estimate the \textit{posterior distribution} over the model parameters, we used Markov chain Monte Carlo (MCMC). For this, we used the differential-evolution adaptive Metropolis (DREAM) algorithm as implemented in PINTS \citep{michaelclerxProbabilisticInferenceNoisy2019}, which shares information across a population of chains. We ran 40 chains initialised from the prior, discarding the first half of each chain as burn-in. To assess convergence we used the Gelman--Rubin statistic \begin{math}\hat{R}\end{math} \citep{vehtariPracticalBayesianModel2017}: all parameters satisfied \begin{math}\hat{R} \leq 1.1\end{math}, with the largest values (up to \begin{math}\approx 1.10\end{math}) occurring for the attack- and handling-rate intercepts, which trade off along a ridge and are only weakly separately identified. Tables of parameter estimates with quantiles and $\hat{R}$ are given in the Appendix.
 
 %TODO: Reorder Supplementary files. Possibly put S3 into Appendix.
 
@@ -215,34 +223,41 @@ Through discussion of our results, we assessed differences between models using 
 Experimental trials were completed for a total of 669 individual fish. Our experimental design produced 224 unique treatment conditions with three fish replicates each. However, for six treatments only two replicates were completed, and for two treatments four replicates were completed. These discrepancies were due to experimenter error. The complete dataset used for analysis is included in \colorbox{yellow}{\hyperlink{supp:S2}{Supplementary File S2}}.
 
 \subsection{Statistical model selection}
-- We compared four different models (see Table 1) and found that the best-fitting model is 'Mostly a+w'. The visualisations for the chosen model (Fig \ref{fig:fig2}) indicates a reasonable correspondence between the true and simulated data. What this means is that handling time matters most, and implies that the searching time really doesn't vary across treatments. It is probably because this period is so short within the confounds of the small bucket, to really matter.
-
-We also find that size really matters to how many prey a fish eats within the time period. This is pretty intuitive, but it is good that our model shows that we fit the data well across all three fish size categories. 
+We compared four models (Table~\ref{tab:model_comparison}) and found that the best-fitting model placed the treatment covariates on the handling rate \begin{math}r\end{math} and included the voracious-forager component. This model was favoured by cross-validation over both the alternative covariate structure and the corresponding two-state models without the voracious component (Table~\ref{tab:model_comparison}). Posterior predictive checks for the chosen model (Fig.~\ref{fig:fig2}) indicate a good correspondence between the observed and simulated data. This meant that feeding was governed principally by handling time rather than searching time, which varied little across treatments, most likely because, within the confines of the small experimental arena, the searching phase was too brief to matter for most fish.
 
 \begin{figure*}
-\centerline{\includegraphics[height=30pc]{figures/can}}
-\caption{\textbf{TO BE UPDATED:} Comparison of actual versus simulated data from the mechanistic model.\label{fig:fig2}}
+\centerline{\includegraphics[width=\textwidth]{figures/model_2a_ppc_violin.png}}
+\caption{Comparison of actual versus simulated data from the best-fitting model. For each initial prey density \begin{math}N_0\end{math}, the distribution of the number of prey eaten in the data (\textit{actual}, green) is compared with the distribution simulated from the fitted model (\textit{simulated}, orange), with fish grouped into light, moderate, and heavy weight terciles. A close correspondence between each pair of distributions indicates a good fit.\label{fig:fig2}}
 \end{figure*}
+
+\subsection{Prey searching is negligible for most fish}
+
+The two-state model on its own substantially under-predicted the number of fish that consumed all of their available prey: across prey densities, 29\% of fish cleared their tanks, whereas the two-state model predicted only around 8\%. Extending the model to allow a subpopulation of voracious foragers, for whom prey capture is effectively instantaneous (see Methods), resolved this discrepancy (Table~\ref{supp:tab_bayes}) and was favoured by cross-validation (Table~\ref{tab:model_comparison}).
+
+The selected model estimated that the great majority of fish, 92\% (95\% CI: 90--95\%), belonged to the voracious class, and this proportion increased with body weight, from approximately 78\% for the lightest fish to near 100\% for the heaviest (Fig.~\ref{fig:voracious}). In other words, for almost all individuals, the time spent searching for prey was negligible relative to handling time, so that consumption was governed almost entirely by the rate of prey handling, $r$. This provides a quantitative basis for the observation that searching time varied little across treatments: within the confined experimental arenas, prey encounter was so rapid that the searching phase contributed negligibly to feeding for the overwhelming majority of fish. Importantly, allowing for this subpopulation did not alter our conclusions about how the treatments affected feeding, because the treatment covariates act on the handling rate \begin{math}r\end{math}, which is shared by both components of the mixture.
+
+\begin{figure}
+\centerline{\includegraphics[width=\columnwidth]{figures/model_2a_voracious_prob.png}}
+\caption{Estimated probability that a fish belongs to the voracious-forager class as a function of body weight. The line shows the posterior median and the shaded band the central 95\% posterior interval.\label{fig:voracious}}
+\end{figure}
 
 \subsection{The effect of experimental treatment on feeding}
 
 Controlling for the acclimation condition, we found minimal association between the type of experimental condition and the estimated handling time (Fig.~\ref{fig:fig3}A).
 
 \begin{figure*}
-\centerline{\includegraphics[height=40pc]{figures/combined_three_panel.png}}
+\centerline{\includegraphics[height=40pc]{figures/model_2a_fig3.png}}
 \caption{Association between experimental and acclimation conditions and the feeding behaviour of fish. (A) The relationship between the estimated handling time and experimental conditions for fish acclimatised in ambient conditions. (B) The relationship between handling time and acclimation conditions where the experiment was conducted in ambient conditions. (C) The model-predicted number of prey items eaten over the course of a one-hour experiment, where the initial number of prey was assumed to be 40. In all panels, the results are stratified according to the duration of the acclimation period, and the results are generated for a fish of median weight. In A and B, the whiskers show the central 95\% posterior intervals for the handling time; the points show the posterior medians for this quantity. In C, triangles show the posterior medians, and the violins provide kernel density estimates of the distributions.\label{fig:fig3}}
 \end{figure*}
 
 
 \subsection{The effect of acclimation treatment and acclimation duration on feeding behaviour}
 
-There were substantial differences in the estimated handling time across acclimation treatments and durations (Fig.~\ref{fig:fig3}B), with the most pronounced effect under the warmed acclimation treatment. Fish of median weight in the control treatment, maintained under ambient conditions, showed similar handling times regardless of acclimation duration (1 wk:  6.1 min; 6 wks: 5.9 min), and consumed comparable numbers of prey (1 wk: 10 prey; 6 wks: 12 prey) (Fig. 3C). In contrast, fish acclimated to warmed water exhibited a strong duration-dependent response: individuals exposed for one week had a handling time of 3.5 minutes (95\% central posterior interval (95\% CI): 3.3-3.8), whereas those acclimated for six weeks had a substantially longer handling time of 8.9 minutes (95\% CI: 8.1-9.8). Furthermore, our results indicate that fish exposed to warming over longer periods consume considerably more prey than those exposed for shorter periods, and that feeding behaviour differs significantly between both warming treatments and ambient conditions (Fig.~\ref{fig:fig3}C).
+There were substantial differences in the estimated handling time across acclimation treatments and durations (Fig.~\ref{fig:fig3}B), with the most pronounced effect under the warmed acclimation treatment. Fish of median weight in the control treatment, maintained under ambient conditions, showed similar handling times regardless of acclimation duration (1 wk: 5.4 min; 6 wks: 5.8 min), and consumed comparable numbers of prey (1 wk: 12 prey; 6 wks: 11 prey) (Fig.~\ref{fig:fig3}C). In contrast, fish acclimated to warmed water exhibited a strong duration-dependent response: individuals exposed for one week had a handling time of 3.5 minutes (95\% central posterior interval (95\% CI): 3.2--3.8), whereas those acclimated for six weeks had a substantially longer handling time of 7.9 minutes (95\% CI: 7.1--8.7). Furthermore, our results indicate that fish exposed to warming over longer periods consume considerably more prey than those exposed for shorter periods, and that feeding behaviour differs significantly between both warming treatments and ambient conditions (Fig.~\ref{fig:fig3}C).
 
-% TODO: Check all results values after model is re-run.
+Fish acclimated to turbid water also showed marked reductions in handling time compared to those in ambient conditions. However, the magnitude of this effect depended on exposure duration: individuals acclimated for one week had shorter handling times and consumed slightly more prey than those acclimated for six weeks (1 wk: 3.8 min, 16 prey; 6 wks: 4.1 min, 15 prey). Consequently, a 1-week acclimation to turbid water reduced handling time by approximately 31\% for fish of median weight relative to ambient conditions, whereas the reduction after 6 weeks was approximately 29\% (Fig.~\ref{fig:fig3}B).
 
-Fish acclimated to turbid water also showed marked reductions in handling time compared to those in ambient conditions. However, the magnitude of this effect depended on exposure duration: individuals acclimated for one week had shorter handling times and consumed more prey than those acclimated for six weeks (1 wk: 3.9 min, 17 prey; 6 wks: 4.7 min, 14 prey). Consequently, a 1-week acclimation to turbid water reduced handling time by approximately 35\% for fish of median weight relative to ambient conditions, whereas the reduction after 6 weeks was approximately 22\% (Fig.~\ref{fig:fig2}B).
-
-The effect of combined warming and turbidity (mixed acclimation treatment) was similarly dependent on exposure duration. Fish acclimated under these conditions had shorter handling times than those in ambient conditions, although the magnitude of this effect differed with acclimation length. Fish acclimation for one week exhibited a ~39\% reduction in handling time (3.6 min), compared to only around 6\% (5.7 min) for those exposed for six weeks (Fig.~\ref{fig:fig2}B). Fish in the mixed treatment also consumed more prey than those in ambient conditions. Individuals in the one-week treatment consumed more prey (17 prey) than those exposed for six weeks (12 prey) and both ambient treatments (Fig.~\ref{fig:fig2}C). While handling times were broadly similar across different stressor treatments (warming, turbid, and mixed) after short-term exposure, clear differences emerged following six weeks of acclimation, indicating that longer-term exposure alters the relative effects of these stressors on feeding behaviour.
+The effect of combined warming and turbidity (mixed acclimation treatment) was similarly dependent on exposure duration. Fish acclimated under these conditions had shorter handling times than those in ambient conditions, although the magnitude of this effect differed with acclimation length. Fish acclimation for one week exhibited a ~33\% reduction in handling time (3.6 min), compared to only around 12\% (5.1 min) for those exposed for six weeks (Fig.~\ref{fig:fig3}B). Fish in the mixed treatment also consumed more prey than those in ambient conditions. Individuals in the one-week treatment consumed more prey (17 prey) than those exposed for six weeks (12 prey) and both ambient treatments (Fig.~\ref{fig:fig3}C). While handling times were broadly similar across different stressor treatments (warming, turbid, and mixed) after short-term exposure, clear differences emerged following six weeks of acclimation, indicating that longer-term exposure alters the relative effects of these stressors on feeding behaviour.
 
 \section{Discussion}
 
@@ -317,54 +332,14 @@ Raw dataset used for the analysis.
 \item[\hypertarget{supp:S3}{Supplementary Data S3}] Full parameter inference results.
 
 
-\begin{table}[h]
-\begin{tabular}{lrrrrrrrr}
-\toprule
-Parameter & Post.\ Mean & Post.\ Std.\ Dev. & 2.5 pctle & 25 pctle & 50 pctle & 75 pctle & 97.5 pctle & $\hat{R}$ \\
-\midrule
-intercept\_a & 3.591 & 0.494 & 2.706 & 3.235 & 3.569 & 3.928 & 4.611 & 1.003 \\
-f.acc\_condH\_a & 0.882 & 0.518 & -0.124 & 0.530 & 0.887 & 1.238 & 1.878 & 1.001 \\
-f.acc\_condM\_a & 1.620 & 0.619 & 0.422 & 1.195 & 1.616 & 2.031 & 2.857 & 1.002 \\
-f.acc\_condT\_a & 1.839 & 0.649 & 0.625 & 1.396 & 1.820 & 2.268 & 3.137 & 1.005 \\
-f.exp\_condH\_a & 1.147 & 0.266 & 0.642 & 0.972 & 1.141 & 1.322 & 1.691 & 1.004 \\
-f.exp\_condM\_a & 1.560 & 0.333 & 0.941 & 1.333 & 1.551 & 1.775 & 2.258 & 1.003 \\
-f.exp\_condT\_a & -0.229 & 0.215 & -0.650 & -0.369 & -0.237 & -0.092 & 0.205 & 1.005 \\
-f.week6\_a & -0.699 & 0.464 & -1.630 & -1.003 & -0.692 & -0.382 & 0.184 & 1.003 \\
-f.acc\_condH:f.week6\_a & -3.690 & 0.490 & -4.666 & -4.017 & -3.684 & -3.355 & -2.760 & 1.003 \\
-f.acc\_condM:f.week6\_a & 0.315 & 0.773 & -1.149 & -0.216 & 0.300 & 0.826 & 1.897 & 1.003 \\
-f.acc\_condT:f.week6\_a & 1.160 & 0.717 & -0.229 & 0.674 & 1.146 & 1.637 & 2.566 & 1.002 \\
-intercept\_h & 0.668 & 0.060 & 0.550 & 0.627 & 0.669 & 0.710 & 0.784 & 1.000 \\
-weight\_h & 2.884 & 0.117 & 2.656 & 2.804 & 2.885 & 2.962 & 3.111 & 1.000 \\
-weight\_h^2 & -0.816 & 0.052 & -0.917 & -0.851 & -0.816 & -0.781 & -0.714 & 1.000 \\
-\bottomrule
-\end{tabular}
-\caption{Parameter estimates model 1.}
+\begin{table}[h]\centering
+\input{tables/table_params_2a}
+\caption{Parameter estimates for the selected model (All-$h$ + voracious mixture; treatment covariates on the handling rate $r$). Weight covariates are standardised; $\gamma_0,\gamma_w$ parameterise the voracious-class probability.}
 \end{table}
 
-
-
-\begin{table}[h]
-\begin{tabular}{lrrrrrrrr}
-\toprule
-Parameter & Post.\ Mean & Post.\ Std.\ Dev. & 2.5 pctle & 25 pctle & 50 pctle & 75 pctle & 97.5 pctle & $\hat{R}$ \\
-\midrule
-intercept\_a & 4.795 & 0.354 & 4.151 & 4.554 & 4.774 & 5.021 & 5.558 & 1.003 \\
-intercept\_h & 0.335 & 0.075 & 0.181 & 0.285 & 0.337 & 0.385 & 0.479 & 1.001 \\
-f.acc\_condH\_h & 0.553 & 0.048 & 0.459 & 0.520 & 0.552 & 0.586 & 0.649 & 1.002 \\
-f.acc\_condM\_h & 0.492 & 0.054 & 0.387 & 0.455 & 0.492 & 0.529 & 0.598 & 1.003 \\
-f.acc\_condT\_h & 0.435 & 0.051 & 0.336 & 0.401 & 0.436 & 0.469 & 0.537 & 1.001 \\
-f.exp\_condH\_h & -0.094 & 0.036 & -0.164 & -0.118 & -0.094 & -0.070 & -0.023 & 1.002 \\
-f.exp\_condM\_h & -0.138 & 0.035 & -0.207 & -0.162 & -0.138 & -0.115 & -0.070 & 1.001 \\
-f.exp\_condT\_h & -0.104 & 0.035 & -0.172 & -0.128 & -0.104 & -0.080 & -0.036 & 1.002 \\
-f.week6\_h & 0.033 & 0.047 & -0.059 & 0.002 & 0.034 & 0.065 & 0.125 & 1.002 \\
-f.acc\_condH:f.week6\_h & -0.963 & 0.069 & -1.099 & -1.009 & -0.964 & -0.917 & -0.827 & 1.003 \\
-f.acc\_condM:f.week6\_h & -0.431 & 0.071 & -0.569 & -0.479 & -0.432 & -0.384 & -0.290 & 1.002 \\
-f.acc\_condT:f.week6\_h & -0.184 & 0.069 & -0.317 & -0.232 & -0.184 & -0.138 & -0.049 & 1.002 \\
-weight\_h & 3.148 & 0.121 & 2.915 & 3.065 & 3.147 & 3.228 & 3.390 & 1.002 \\
-weight\_h^2 & -0.883 & 0.054 & -0.992 & -0.919 & -0.883 & -0.846 & -0.777 & 1.003 \\
-\bottomrule
-\end{tabular}
-\caption{Parameter estimates model 2.}
+\begin{table}[h]\centering
+\input{tables/table_params_1a}
+\caption{Parameter estimates for the alternative model (Mostly-$a$ + voracious mixture; treatment covariates on the attack rate $a$). Weight covariates are standardised; $\gamma_0,\gamma_w$ parameterise the voracious-class probability.}
 \end{table}
 
 
@@ -372,6 +347,43 @@ weight\_h^2 & -0.883 & 0.054 & -0.992 & -0.919 & -0.883 & -0.846 & -0.777 & 1.00
 
 
 
+
+\item[\hypertarget{supp:S4}{Supplementary Data S4}] Prior and posterior predictive checks.
+
+We assessed model adequacy with prior- and posterior-predictive checks for the selected model (All-$h$ + voracious mixture). The calibrated priors cover the observed distribution of prey consumed at every starting density $N_0$ without piling mass at the boundaries (Fig.~\ref{supp:prior}), and the posterior predictive distribution reproduces both the central tendency and the full-consumption spike (main-text Fig.~\ref{fig:fig2}).
+
+Table~\ref{supp:tab_bayes} reports two-sided posterior-predictive $p$-values ($p_B$) for a set of discrepancy statistics. The mixture is well calibrated for the full-consumption fraction (overall and within weight strata), the zero-consumption fraction, and the mean number eaten. The one statistic it does not fully capture is the total dispersion of counts across densities ($p_B \approx 0$): the model is slightly over-dispersed at low $N_0$ and under-dispersed at high $N_0$, also visible as a mild $\cup$-shape in the LOO probability-integral-transform (Fig.~\ref{supp:loopit}). We judged this residual misfit minor relative to the risk of over-fitting a more elaborate dispersion model, and it does not affect the treatment-effect estimates. Figures~\ref{supp:violin}--\ref{supp:warmedweek} show discrepancy checks disaggregated by fish weight, acclimation condition, experimental condition, and the warmed$\times$6-week cell; observed values fall within the posterior-predictive envelopes in each case.
+
+\begin{table}[h]\centering
+\caption{Posterior-predictive discrepancy checks for all four candidate models,
+identified as in Table~\ref{tab:model_comparison}. The first row gives the observed
+value of each statistic; each subsequent row gives that model's two-sided
+posterior-predictive $p$-value ($p_B$), where values near $0$ indicate poor
+reproduction of the statistic. ``Disp.'' indicates the dispersion discrepancy statistic: $\sum_{N_0} \mathrm{Var}\big(\text{eaten}\mid N_0\big)$. ``Full consumption by weight'' indicates the fraction eating all $N_0$ prey. \label{supp:tab_bayes}}
+\input{tables/table_bayes_p}
+\end{table}
+
+\begin{figure}[h]\centering\includegraphics[width=.8\textwidth]{figures/model_2a_prior_predictive.png}
+\caption{Prior-predictive distribution of prey eaten by $N_0$ (bars: data).\label{supp:prior}}\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{figures/model_2a_ppc_discrepancy}
+    \caption{Posterior predictive checks for best fitting model.}
+    \label{fig:placeholder}
+\end{figure}
+
+\begin{figure}[h]\centering\includegraphics[width=.8\textwidth]{figures/model_2a_ppc_violin.png}
+\caption{Posterior-predictive discrepancy by fish-weight tercile.\label{supp:violin}}\end{figure}
+
+\begin{figure}[h]\centering\includegraphics[width=.8\textwidth]{figures/model_2a_ppc_violin_acc.png}
+\caption{Posterior-predictive discrepancy by acclimation condition.\label{supp:violin_acc}}\end{figure}
+
+\begin{figure}[h]\centering\includegraphics[width=.8\textwidth]{figures/model_2a_ppc_violin_exp.png}
+\caption{Posterior-predictive discrepancy by experimental condition.\label{supp:violin_exp}}\end{figure}
+
+\begin{figure}[h]\centering\includegraphics[width=.8\textwidth]{figures/model_2a_ppc_warmed_week.png}
+\caption{Posterior-predictive check for the warmed$\times$6-week acclimation cell.\label{supp:warmedweek}}\end{figure}
 
 \end{description}
 

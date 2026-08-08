@@ -90,3 +90,38 @@ Assuming independence across replicates, the full likelihood is:
 \]
 
 Because each replicate may have different covariates and initial prey counts $N_0$, the probability $P(N,t)$ must be computed separately for each replicate.
+
+\section{A limiting case: voracious foragers ($a \to \infty$)}
+\label{app:voracious}
+
+The likelihood above under-predicts the fraction of fish that consume \emph{all} of their prey. This motivates a limiting version of the model in which prey capture is effectively instantaneous, so that a fish is constrained only by the handling (BP) process. Formally, we take $a \to \infty$ in eq.\ \eqref{eqn:eqn1} of the main text. In this limit the sojourn time in the AP state with $N \geq 1$ prey remaining, which is exponentially distributed with rate $aN$, tends to zero: whenever the predator is in the AP state and at least one prey remains, it captures a prey item and transitions to the BP state \emph{immediately} (with probability one).
+
+Consider a replicate that begins with $N_0 \geq 1$ prey. The dynamics are then as follows. At $t = 0$ the predator is in the AP state, so it instantaneously captures its first prey and enters the BP state. It remains there for a handling period that is exponentially distributed with rate $r$; upon completion it re-enters the AP state and, provided prey remain, instantaneously captures another and returns to BP; and so on. Every capture after the first is therefore preceded by exactly one $\mathrm{Exponential}(r)$ handling period, while the instantaneous captures consume no time. The completion times of successive handling periods thus form a homogeneous Poisson process of rate $r$, and the number of such completions during the trial of unit length,
+\[
+K \sim \mathrm{Poisson}(r),
+\]
+counts the captures made \emph{after} the initial instantaneous one. The process stops when either the trial ends or the prey are exhausted, so the total number of prey eaten is
+\begin{equation}
+\label{eq:voracious-count}
+Y = \min\!\big(N_0,\; 1 + K\big), \qquad K \sim \mathrm{Poisson}(r).
+\end{equation}
+This is a shifted (by one), right-truncated (at $N_0$) Poisson distribution. Explicitly, its probability mass function is
+\begin{equation}
+\label{eq:voracious-pmf}
+P_{\mathrm{vor}}(Y = k \mid r, N_0) =
+\begin{cases}
+\dfrac{e^{-r} r^{\,k-1}}{(k-1)!}, & 1 \leq k \leq N_0 - 1, \\[2ex]
+\displaystyle 1 - \sum_{j=0}^{N_0 - 2} \dfrac{e^{-r} r^{\,j}}{j!}, & k = N_0, \\[2ex]
+0, & \text{otherwise.}
+\end{cases}
+\end{equation}
+Because $N_0 \geq 1$, a voracious forager always eats at least one prey item ($P_{\mathrm{vor}}(Y = 0) = 0$); the probability mass that a Poisson count would place above $N_0 - 1$ is accumulated onto the full-consumption outcome $Y = N_0$, which is precisely the behaviour the CME model failed to capture.
+
+\subsection*{Mixture likelihood}
+
+We allow each fish to be either an ordinary forager, whose consumption follows the CME distribution $P(N_i, t = 1)$ derived above, or a voracious forager, whose consumption follows eq.\ \eqref{eq:voracious-pmf}. Let $z_i \in \{0, 1\}$ indicate that replicate $i$ is voracious, with $\Pr(z_i = 1) = \pi_i$ and $\mathrm{logit}(\pi_i) = \gamma_0 + \gamma_w \, \mathrm{weight}_i$. Writing $y_i$ for the number of prey eaten by fish $i$ (so $y_i = N_{0,i} - N_i$) and marginalising over the latent indicator $z_i$, the likelihood contribution is
+\begin{equation}
+\label{eq:mixture-like}
+\mathcal{L}_i = (1 - \pi_i)\, P_{\mathrm{CME}}(y_i \mid a_i, r_i, N_{0,i}) \; + \; \pi_i \, P_{\mathrm{vor}}(y_i \mid r_i, N_{0,i}),
+\end{equation}
+where $P_{\mathrm{CME}}$ is the CME distribution over prey eaten (equivalently $P(N_i, t=1)$ with $N_i = N_{0,i} - y_i$). The full likelihood is the product of eq.\ \eqref{eq:mixture-like} across independent replicates. Setting $\pi_i \equiv 0$ recovers the pure CME model, so the two-state model is nested within the mixture.

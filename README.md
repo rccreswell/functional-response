@@ -123,7 +123,17 @@ python make_results_table.py   # outputs/model_2a_results_table.{csv,tex}: handl
 python make_supp_tables.py     # outputs/table_loo.tex (4-model PSIS-LOO) and outputs/table_bayes_p.tex
                                # (discrepancy p-values), generated from the committed result CSVs.
 ```
-Draft LaTeX for the manuscript lives in `paper/draft_attack_unlimited.tex` (voracious-subpopulation Results subsection) and `paper/draft_supplementary_ppc.tex` (supplementary PPC section). Model-2a PPC figures are copied into `paper/figures/`.
+```bash
+python make_voracious_prob.py --model 2   # outputs/model_2a_voracious_prob.png: P(voracious) vs fish weight
+                                          # (posterior median + 95% band, rug of observed weights; no title)
+```
+```bash
+python prior_sensitivity.py   # Model-2a prior sensitivity via PSIS reweighting (no refit).
+                              # widen/shift-only priors -> outputs/sensitivity/{sensitivity_summary.csv,
+                              # sensitivity_forest.png, sensitivity_panelA.png, sensitivity_panelB.png}
+                              # + paper/tables/table_prior_sensitivity.tex. All Pareto-k < 0.7.
+```
+Draft LaTeX for the manuscript lives in `paper/draft_attack_unlimited.tex` (voracious-subpopulation Results subsection), `paper/draft_supplementary_ppc.tex` (supplementary PPC section), and `paper/draft_prior_sensitivity.tex` (supplementary prior-sensitivity section). Model-2a PPC and sensitivity figures are copied into `paper/figures/`.
 
 ## R: plotting
 This code takes the `csv` files from the inference and uses these to plot the data.
