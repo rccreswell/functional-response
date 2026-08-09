@@ -21,9 +21,9 @@ snakemake -c1 -n        # dry run: show the DAG
 snakemake -c1           # build all tables/figures/values in paper/
 snakemake -c1 --use-conda   # ... each rule in the pinned env
 ```
-The pipeline writes `paper/figures/*.png`, `paper/tables/*.tex`, and `paper/generated_values.tex` — a set of `\newcommand` macros holding **every number quoted in the Results, each with its uncertainty interval** (plus the ROPE comparisons). `article.tex` `\input`s that file and uses the macros, so no result is hand-typed; rerun `make_paper_values.py` (or `snakemake`) and the paper's numbers update themselves. Build the PDF locally with your usual LaTeX toolchain (`latexmk -pdf paper/article.tex`).
+The pipeline writes `paper/figures/*.png`, `paper/tables/*.tex`, and `paper/generated_values.tex` — a set of `\newcommand` macros holding every number quoted in the Results, each with its uncertainty interval (plus the ROPE comparisons). `article.tex` `\input`s that file and uses the macros; rerun `make_paper_values.py` (or `snakemake`) and the paper's numbers update themselves. Build the PDF locally with your usual LaTeX toolchain (`latexmk -pdf paper/article.tex`).
 
-**Tier B (refitting).** The DREAM fits live in a separate `Snakefile.fit` so a plain `snakemake` run never triggers hours-long refits. It **overwrites** the committed posteriors (commit/back up first) and is stochastic (reproduces only up to Monte Carlo error):
+**Tier B (refitting).** The DREAM fits live in a separate `Snakefile.fit` file. It overwrites the committed posteriors (commit/back up first) and is stochastic (reproduces only up to Monte Carlo error):
 ```bash
 snakemake -s Snakefile.fit -c1 fit_all                    # refit all four models
 snakemake -s Snakefile.fit -c1 --config n_iter=30000      # override run length
@@ -38,10 +38,7 @@ A stochastic reaction (chemical master equation) model of a predator that switch
 
 ## Python: inference
 
-Two entry points, both run from the repository root:
-
-- **`run_models.ipynb`** — data loading, priors, and prior-predictive checks. Good for interactive exploration and the explanatory figures.
-- **`run_dream.py`** — the production inference (below). The heavy MCMC is run from a script rather than the notebook because the fast, robust parallelism (one persistent process pool across chains, via `pints` `set_parallel`) is unreliable inside Jupyter on macOS.
+**`run_dream.py`** is reponsible for inference (below).
 
 The priors are the same in both (`build_prior` in `run_dream.py` mirrors the notebook): intercepts calibrated so the baseline predator eats a realistic fraction of prey (`a0 ~ Normal(log 4, 1)`, `r0 ~ Normal(log 20, 0.5)`), and weakly-informative, "p-aware" slope priors (`Normal(0, (0.75/sqrt(p))^2)`, `p` = number of covariates on that rate) so the total covariate-driven spread is stable regardless of covariate count. Weight is z-scored; condition/week terms are 0/1 dummies.
 
