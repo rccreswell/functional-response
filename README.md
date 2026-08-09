@@ -1,6 +1,35 @@
 # Functional response
 This repository contains resources for rerunning functional response-type analyses underpinning Newport et al. (2026), "Heatwaves and turbidity influxes have interacting and lasting effects on foraging behaviour of three-spined sticklebacks _Gasterosteus aculeatus_".
 
+## Reproducibility
+
+The analysis is split into two tiers:
+
+- **Tier A — fast & fully reproducible:** everything downstream of the fitted posteriors (all summaries, figures, tables, and the numbers quoted in the paper). This is driven by a `Snakefile` and reproduces bit-for-bit given the committed posterior CSVs (seeds/thinning are fixed).
+- **Tier B — the DREAM fits (`data → posteriors`):** expensive (hours) and *not* bitwise-reproducible across machines (parallelism + BLAS ordering), so the posterior CSVs are treated as **versioned inputs**. See *Python: inference* for how to (re)fit.
+
+Pinned environment (versions match the machine the results were produced on — Python 3.9.7):
+```bash
+conda env create -f environment.yml     # numpy 1.20.3, scipy 1.7.1, pandas 1.3.4,
+conda activate functional-response       # matplotlib 3.4.3, joblib 1.1.0, pints 0.5.0, arviz 0.11.2
+# optional exact cross-platform lock:  conda-lock -f environment.yml
+```
+
+Regenerate every paper artifact from the committed posteriors:
+```bash
+snakemake -c1 -n        # dry run: show the DAG
+snakemake -c1           # build all tables/figures/values in paper/
+snakemake -c1 --use-conda   # ... each rule in the pinned env
+```
+The pipeline writes `paper/figures/*.png`, `paper/tables/*.tex`, and `paper/generated_values.tex` — a set of `\newcommand` macros holding **every number quoted in the Results, each with its uncertainty interval** (plus the ROPE comparisons). `article.tex` `\input`s that file and uses the macros, so no result is hand-typed; rerun `make_paper_values.py` (or `snakemake`) and the paper's numbers update themselves. Build the PDF locally with your usual LaTeX toolchain (`latexmk -pdf paper/article.tex`).
+
+**Tier B (refitting).** The DREAM fits live in a separate `Snakefile.fit` so a plain `snakemake` run never triggers hours-long refits. It **overwrites** the committed posteriors (commit/back up first) and is stochastic (reproduces only up to Monte Carlo error):
+```bash
+snakemake -s Snakefile.fit -c1 fit_all                    # refit all four models
+snakemake -s Snakefile.fit -c1 --config n_iter=30000      # override run length
+```
+These rules do a single long run per model (simpler for the DAG); the production runs instead accumulated iterations with `--resume` (see below). Check the printed R-hat / ESS table and raise `n_iter` if not yet converged.
+
 ## Models
 A stochastic reaction (chemical master equation) model of a predator that switches between a *preying* state (searching, at attack rate `a`) and a *digesting* state (at rate `r`, the inverse of handling time `h`). Both rates depend on covariates through a log link, `log a = a0 + beta_a . x_a` and `log r = r0 + beta_r . x_r`.
 
@@ -34,9 +63,11 @@ Writes `outputs/model_<id>_prior_predictive.png` — a grid of panels, one per i
 python run_dream.py --models 1,2 --n-iter 4000
 ```
 
-For each model this runs a short CMA-ES optimisation to a sensible starting region, then 30 dispersed DREAM chains, writing incrementally to per-chain CSV chunks `outputs/model_<id>_dream_c<k>_<chain>.csv`. On completion it saves the pooled posterior (`outputs/model_<id>_dream.npy`), prints an R-hat / ESS / 95%-CI table, and writes the single consolidated CSV (step 3).
+For each model this runs a short CMA-ES optimisation to a high-posterior point, then starts 40 DREAM chains in a tight Gaussian ball (s.d. 0.3 per coordinate) around that point — note these are **not** over-dispersed starts, so `R-hat` is a weaker convergence check than under the usual over-dispersed-initialisation recommendation. Chains are written incrementally to per-chain CSV chunks `outputs/model_<id>_dream_c<k>_<chain>.csv`. On completion it saves the pooled posterior (`outputs/model_<id>_dream.npy`), prints an R-hat / ESS / 95%-CI table, and writes the single consolidated CSV (step 3).
 
-Long runs can be interrupted. `--resume` warm-starts each model from its last saved positions (no warmup redone) and appends a new chunk, so you accumulate iterations across launches until converged (aim for **R-hat < 1.1**):
+**Pooling note.** The reported posterior (`pooled_posterior`) is assembled heuristically: it drops chunk 0 (the CMA-ES-seeded cold run) in full, discards the first 500 iterations of the first warm chunk, and concatenates the remainder. It does **not** re-discard a transient at each subsequent chunk boundary, so it assumes the warm-started chains stay at stationarity across resumes.
+
+Long runs can be interrupted. `--resume` starts a **new** DREAM run using the final states of the previous run as its initial population, and appends a new chunk. This is *not* a checkpoint/restart of the sampler: a fresh `DreamMCMC` object is constructed each time, so DREAM's internal adaptation and differential-evolution history are **not** carried over across chunks. You accumulate iterations across launches (aim for **R-hat < 1.1**):
 
 ```
 python run_dream.py --models 1,2 --resume --n-iter 2000
@@ -95,7 +126,7 @@ Posterior-predictive checks on the base models showed they badly under-predict t
 
 All commands are run from the repo root and are deterministic (fixed seeds), so the figures/tables reproduce exactly.
 
-**Fit** (DREAM, checkpointed/resumable exactly like the base models; converge to R-hat < 1.1 with `--resume` passes, then it consolidates automatically):
+**Fit** (DREAM, resumable exactly like the base models — each `--resume` pass seeds a fresh DREAM from the previous chunk's endpoints, see the resume/pooling caveats above; converge to R-hat < 1.1 with `--resume` passes, then it consolidates automatically):
 
 ```
 python run_dream_mixture.py --map-check --models 1,2         # fast CMA-ES sanity check

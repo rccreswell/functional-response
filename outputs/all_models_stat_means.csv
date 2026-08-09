@@ -1,0 +1,8 @@
+statistic,observed,model_1_mean,model_2_mean,model_1a_mean,model_2a_mean
+full-consumption P(eaten=n0),0.2904,0.1034,0.0772,0.2889,0.2976
+zero-consumption P(eaten=0),0.021,0.0003,0.0,0.0137,0.0134
+overdispersion sum Var(eaten|n0),281.1322,181.008,185.0702,210.2774,235.77
+mean eaten,10.3428,10.3829,10.3967,10.1829,10.1957
+full-consumption (light weight),0.1404,0.0694,0.0414,0.1446,0.1516
+full-consumption (moderate weight),0.2757,0.09,0.0714,0.2669,0.2624
+full-consumption (heavy weight),0.4658,0.153,0.1214,0.4651,0.4887

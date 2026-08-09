@@ -41,9 +41,9 @@ ctmc_eaten_pmf|function|bd986e5d09bca08f
 ctmc_mean_curve|function|3d990634eb9a8b07
 ctmc_mean_eaten|function|89714af80c4db5cd
 make_plot_explanatory_figure_b|function|df7c0524d77d7128
-make_plot_explanatory_figure_bc|function|fe59979a04326fac
+make_plot_explanatory_figure_bc|function|8fbda322b3b402d0
 ctmc_eaten_summary|function|be2e98be588e01d6
 ctmc_mean_curve_scenario|function|425c81295c231b5f
 ctmc_eaten_summary_grid|function|6a428cd76e79df70
-plot_explanatory_figure_bc|stem|be5e9956747ad890|1a5e145ffa1329fb|0a8d401e6d4cffc5|-1447237321||t20591.697803438s|s1407094b|1407094|rds|local|vector|||0.243||
-file_plot_explanatory_figure_bc|stem|7528242f79560424|69c21308edaec07b|6b96827ee3d8a5f6|1246862652|outputs/plot_explanatory_figure_bc.pdf|t20591.697814776s|s32944b|32944|file|local|vector|||0.784||
+plot_explanatory_figure_bc|stem|e419ccd609a0f8ae|1a5e145ffa1329fb|790f64759a8fd27a|-1447237321||t20674.5173568615s|s1409888b|1409888|rds|local|vector|||0.234||
+file_plot_explanatory_figure_bc|stem|815392a04892eb86|69c21308edaec07b|49d6b4dd503f6108|1246862652|outputs/plot_explanatory_figure_bc.pdf|t20674.5173682613s|s32932b|32932|file|local|vector|||0.793||

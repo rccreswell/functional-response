@@ -1,0 +1,51 @@
+# Tier B (OPT-IN, EXPENSIVE): the DREAM fits, data -> posterior CSVs.
+#
+# WARNING: these rules OVERWRITE the committed posterior CSVs that Tier A treats
+# as versioned inputs. Commit or back them up first. The fits are stochastic:
+# they reproduce the reported results only up to Monte Carlo error (parallelism +
+# BLAS ordering), not bitwise. This Snakefile is separate from the main `Snakefile`
+# on purpose, so a plain `snakemake` run never triggers hours-long refits.
+#
+#   snakemake -s Snakefile.fit -c1 fit_all                 # refit all four models
+#   snakemake -s Snakefile.fit -c1 outputs/model_2a_posterior.csv   # just model 2a
+#   snakemake -s Snakefile.fit -c1 --config n_iter=30000 n_chains=40 seed=0
+#
+# The production runs accumulated iterations with `--resume` (see README); these
+# rules do a single long run instead, which is simpler for the DAG. Check the
+# R-hat / ESS table the scripts print, and raise `n_iter` if not yet converged.
+
+DATA   = "data/df_covariates_better_date.csv"
+NITER  = config.get("n_iter", 20000)
+NCHAIN = config.get("n_chains", 40)
+SEED   = config.get("seed", 0)
+# best-effort determinism: single-threaded BLAS so the summed likelihood reduces
+# in a fixed order (still not bitwise across platforms).
+THREADS_ENV = "OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1"
+
+
+rule fit_all:
+    input:
+        "outputs/model_1_posterior.csv", "outputs/model_2_posterior.csv",
+        "outputs/model_1a_posterior.csv", "outputs/model_2a_posterior.csv",
+
+
+rule fit_base:
+    input: DATA
+    output: "outputs/model_{m}_posterior.csv"
+    wildcard_constraints: m="1|2"
+    params: niter=NITER, nchain=NCHAIN, seed=SEED, env=THREADS_ENV
+    conda: "environment.yml"
+    shell:
+        "{params.env} python run_dream.py --models {wildcards.m} "
+        "--n-iter {params.niter} --n-chains {params.nchain} --seed {params.seed}"
+
+
+rule fit_mixture:
+    input: DATA
+    output: "outputs/model_{m}a_posterior.csv"
+    wildcard_constraints: m="1|2"
+    params: niter=NITER, nchain=NCHAIN, seed=SEED, env=THREADS_ENV
+    conda: "environment.yml"
+    shell:
+        "{params.env} python run_dream_mixture.py --models {wildcards.m} "
+        "--n-iter {params.niter} --n-chains {params.nchain} --seed {params.seed}"

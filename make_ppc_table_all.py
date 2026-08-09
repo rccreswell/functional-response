@@ -61,17 +61,20 @@ def main():
     for tag, fn in MODELS:
         sims[tag] = fn()
         print(f"[{tag}] simulated {sims[tag].shape[0]} draws x {sims[tag].shape[1]} obs", flush=True)
-    rows = []
+    rows, means = [], []
     for name, T in STATS.items():
         obs = float(T(NE))
         row = {'statistic': name, 'observed': round(obs, 4)}
+        mrow = {'statistic': name, 'observed': round(obs, 4)}
         for tag, _ in MODELS:
             rep = np.array([T(s) for s in sims[tag]])
             p = float(np.mean(rep >= obs))
-            row[f'{tag}_p'] = round(2 * min(p, 1 - p), 3)     # two-sided
-        rows.append(row)
+            row[f'{tag}_p'] = round(2 * min(p, 1 - p), 3)      # two-sided
+            mrow[f'{tag}_mean'] = round(float(rep.mean()), 4)  # model's expected value of the statistic
+        rows.append(row); means.append(mrow)
     pd.DataFrame(rows).to_csv('outputs/all_models_bayes_pvalues.csv', index=False)
-    print("saved outputs/all_models_bayes_pvalues.csv")
+    pd.DataFrame(means).to_csv('outputs/all_models_stat_means.csv', index=False)
+    print("saved outputs/all_models_bayes_pvalues.csv and outputs/all_models_stat_means.csv")
     print(pd.DataFrame(rows).to_string(index=False))
 
 

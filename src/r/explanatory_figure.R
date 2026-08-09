@@ -498,8 +498,8 @@ make_plot_explanatory_figure_bc <- function(df_search_low, df_search_high,
   )
 
   # Strips and panels
-  col_title_left  <- column_title_strip("(a) Trajectories over time")
-  col_title_right <- column_title_strip("(b) Endpoint vs. initial prey count")
+  col_title_left  <- column_title_strip("Trajectories over time")
+  col_title_right <- column_title_strip("Endpoint vs. initial prey count")
 
   title_search    <- row_title_strip("I. Search-limited")
   title_handling  <- row_title_strip("II. Handling-limited")
