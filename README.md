@@ -32,7 +32,7 @@ snakemake -c1        # build all artifacts under paper/
 
 Results are outputted into `paper/figures/`, `paper/tables/`, and `paper/generated_values.tex` with `\newcommand` macros holding every quoted value with its uncertainty interval (and the ROPE comparisons), `\input` by `article.tex`. Build the PDF with `latexmk -pdf paper/article.tex`. (Figure 1B is produced by the R `targets` pipeline, `src/r/explanatory_figure.R`.)
 
-### Refitting the models (Tier B — expensive, optional)
+### Refitting the models
 
 The DREAM fits (`data → posteriors`) are stochastic so they reproduce the results only up to Monte Carlo error so the posterior CSVs are treated as versioned inputs. Refitting is handled via a separate Snakefile; it overwrites the committed posteriors:
 
