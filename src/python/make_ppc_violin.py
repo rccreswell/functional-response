@@ -88,7 +88,7 @@ def make_ppc(model_id, facet='weight', n_draws=200):
                      bbox=dict(boxstyle='round,pad=0.3', fc='0.92', ec='0.6'))
         ax.set_xticks(range(len(N0_LEVELS)))
         ax.set_xticklabels(N0_LEVELS)
-        ax.set_xlabel('# initial prey')
+        ax.set_xlabel('initial prey, $N_0$')
     np.atleast_1d(axes)[0].set_ylabel('# prey eaten')
 
     handles = [plt.Rectangle((0, 0), 1, 1, fc=GREEN, alpha=0.85, label='actual'),

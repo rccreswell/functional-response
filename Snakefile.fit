@@ -36,7 +36,7 @@ rule fit_base:
     params: niter=NITER, nchain=NCHAIN, seed=SEED, env=THREADS_ENV
     conda: "environment.yml"
     shell:
-        "{params.env} python run_dream.py --models {wildcards.m} "
+        "{params.env} python src/python/run_dream.py --models {wildcards.m} "
         "--n-iter {params.niter} --n-chains {params.nchain} --seed {params.seed}"
 
 
@@ -47,5 +47,5 @@ rule fit_mixture:
     params: niter=NITER, nchain=NCHAIN, seed=SEED, env=THREADS_ENV
     conda: "environment.yml"
     shell:
-        "{params.env} python run_dream_mixture.py --models {wildcards.m} "
+        "{params.env} python src/python/run_dream_mixture.py --models {wildcards.m} "
         "--n-iter {params.niter} --n-chains {params.nchain} --seed {params.seed}"

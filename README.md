@@ -43,7 +43,11 @@ snakemake -s Snakefile.fit -c1 --config n_iter=30000   # override run length
 
 Convergence caveats (see `run_dream.py` / `run_dream_mixture.py`): chains start in a tight ball around a CMA-ES optimum (not over-dispersed, so `R-hat` is a weaker check); the pooled posterior uses a heuristic warm-up discard; and `--resume` seeds a *fresh* DREAM from the previous run's endpoints rather than checkpointing the sampler.
 
-## Key scripts
+## Repository layout
+
+Python analysis code lives in `src/python/`, the R `targets` pipeline in `src/r/` (with `_targets.R` at the root), exploratory notebooks in `notebooks/`, data in `data/`, generated artifacts in `outputs/`, and the manuscript in `paper/`.
+
+## Key scripts (in `src/python/`)
 
 - `run_dream.py`, `run_dream_mixture.py` — fits (base / mixture), prior-predictive checks, PSIS-LOO.
 - `mixture_model.py` — voracious-mixture likelihood.

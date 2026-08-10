@@ -70,13 +70,14 @@ def violin_facets(tag, sims, labels_per_fish, levels, ftitle, fname, points=True
                 _style(ax.violinplot([actual], positions=[i - 0.2], widths=0.36, showextrema=False), GREEN)
             if points:
                 ax.scatter(np.full(len(actual), i - 0.2), actual, s=6, color='0.25', alpha=0.45, zorder=3)
-        ax.set_title(lev, fontsize=12, bbox=dict(boxstyle='round,pad=0.3', fc='0.92', ec='0.6'))
-        ax.set_xticks(range(len(N0_LEVELS))); ax.set_xticklabels(N0_LEVELS); ax.set_xlabel('# initial prey')
+        ax.set_title(lev, fontsize=12)
+        ax.set_xticks(range(len(N0_LEVELS))); ax.set_xticklabels(N0_LEVELS); ax.set_xlabel('initial prey, $N_0$')
     np.atleast_1d(axes)[0].set_ylabel('# prey eaten')
     h = [plt.Rectangle((0, 0), 1, 1, fc=GREEN, alpha=.85, label='actual'),
          plt.Rectangle((0, 0), 1, 1, fc=ORANGE, alpha=.85, label='simulated')]
-    fig.legend(handles=h, title='Data', loc='center right', frameon=False)
-    fig.tight_layout(rect=[0, 0, 0.93, 0.97]); fig.savefig(fname, dpi=115); plt.close(fig)
+    fig.tight_layout(rect=[0, 0, 0.88, 1])       # reserve right margin for the legend
+    fig.legend(handles=h, title='Data', loc='center left', bbox_to_anchor=(0.89, 0.5), frameon=False)
+    fig.savefig(fname, dpi=115, bbox_inches='tight'); plt.close(fig)
 
 
 def run(model_id, n_draws=200):
@@ -103,7 +104,7 @@ def run(model_id, n_draws=200):
         m = np.array(by[n]); d = np.array(dat[n]).mean(0); c = np.arange(n + 1)
         axs[i].fill_between(c, np.percentile(m, 2.5, 0), np.percentile(m, 97.5, 0), alpha=.3, color='C1')
         axs[i].plot(c, m.mean(0), color='C1', label='post. pred.'); axs[i].plot(c, d, 'k-', lw=1.2, label='data')
-        axs[i].set_title(f'n0 = {n}', fontsize=10); axs[i].set_xlabel('num prey eaten'); axs[i].set_ylabel('prob')
+        axs[i].set_title(f'$N_0 = {n}$', fontsize=10); axs[i].set_xlabel('prey eaten'); axs[i].set_ylabel('prob')
         if i == 0:
             axs[i].legend(fontsize=8)
     for j in range(len(N0_LEVELS), len(axs)):
@@ -136,7 +137,7 @@ def run(model_id, n_draws=200):
             ax.scatter(np.full(len(actual), i - .2), actual, s=10, color='0.2', alpha=.55, zorder=3)
         ax.set_title(f'Warmed acclimation — week {wk}', fontsize=12,
                      bbox=dict(boxstyle='round,pad=0.3', fc='0.92', ec='0.6'))
-        ax.set_xticks(range(len(hlev))); ax.set_xticklabels(hlev); ax.set_xlabel('# initial prey')
+        ax.set_xticks(range(len(hlev))); ax.set_xticklabels(hlev); ax.set_xlabel('initial prey, $N_0$')
     axes[0].set_ylabel('# prey eaten')
     fig.legend(handles=[plt.Rectangle((0, 0), 1, 1, fc=GREEN, alpha=.85, label='actual'),
                         plt.Rectangle((0, 0), 1, 1, fc=ORANGE, alpha=.85, label='simulated')],
@@ -171,7 +172,7 @@ def run(model_id, n_draws=200):
     rp = np.array([[np.mean(s[N0 == n] == n) for n in N0_LEVELS] for s in sims])
     ax.fill_between(N0_LEVELS, np.percentile(rp, 2.5, 0), np.percentile(rp, 97.5, 0), alpha=.3, color=ORANGE, label='rep 95%')
     ax.plot(N0_LEVELS, rp.mean(0), color=ORANGE, label='rep mean'); ax.plot(N0_LEVELS, ob, 'ko-', label='observed')
-    ax.set_title('full-consumption by n0', fontsize=10); ax.set_xlabel('# initial prey'); ax.set_ylabel('P(eaten=n0)'); ax.legend(fontsize=8)
+    ax.set_title('full-consumption by $N_0$', fontsize=10); ax.set_xlabel('initial prey, $N_0$'); ax.set_ylabel('$P(\mathrm{eaten}=N_0)$'); ax.legend(fontsize=8)
     fig.tight_layout()
     fig.savefig(f'outputs/{tag}_ppc_discrepancy.png', dpi=115); plt.close(fig)
 

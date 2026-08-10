@@ -193,7 +193,7 @@ def prior_predictive_mix(model_id, n_draws=100, seed=0):
         axs[i].fill_between(counts, lo, hi, alpha=.3, color='C0')
         axs[i].plot(counts, perdraw.mean(0), color='C0', label='prior pred.')
         axs[i].plot(counts, data, 'k-', lw=1.2, label='data')
-        axs[i].set_title(f'n0 = {n}', fontsize=10); axs[i].set_xlabel('num prey eaten'); axs[i].set_ylabel('prob')
+        axs[i].set_title(f'$N_0 = {n}$', fontsize=10); axs[i].set_xlabel('prey eaten'); axs[i].set_ylabel('prob')
         if i == 0:
             axs[i].legend(fontsize=8)
         covered += int(((data >= lo) & (data <= hi)).sum()); total += len(counts)

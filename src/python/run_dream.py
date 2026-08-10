@@ -214,7 +214,7 @@ def prior_predictive(model_id, n_draws=100, seed=0):
     for pvecs in per_draw:
         for k, p in enumerate(pvecs):
             prior_by_n0[int(N0[k])].append(p)
-    # empirical data distribution per n0 (one-hot of observed eaten, over fish)
+    # empirical data distribution per $N_0$ (one-hot of observed eaten, over fish)
     data_by_n0 = {n: [] for n in uniq}
     for k in range(len(NE)):
         n = int(N0[k])
@@ -237,8 +237,8 @@ def prior_predictive(model_id, n_draws=100, seed=0):
         ax.fill_between(counts, lo, hi, alpha=0.3, color='C0')
         ax.plot(counts, m.mean(0), color='C0', label='prior pred.')
         ax.plot(counts, d, 'k-', lw=1.2, label='data')
-        ax.set_title(f'n0 = {n}', fontsize=10)
-        ax.set_xlabel('num prey eaten'); ax.set_ylabel('probability')
+        ax.set_title(f'$N_0 = {n}$', fontsize=10)
+        ax.set_xlabel('prey eaten'); ax.set_ylabel('probability')
         if i == 0:
             ax.legend(fontsize=8)
         covered += int(((d >= lo) & (d <= hi)).sum())

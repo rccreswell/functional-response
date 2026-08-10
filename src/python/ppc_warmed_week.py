@@ -56,7 +56,7 @@ def make(model_id, n_draws=120):
                      fontsize=12,
                      bbox=dict(boxstyle='round,pad=0.3', fc='0.92', ec='0.6'))
         ax.set_xticks(range(len(n0_levels))); ax.set_xticklabels(n0_levels)
-        ax.set_xlabel('# initial prey')
+        ax.set_xlabel('initial prey, $N_0$')
     axes[0].set_ylabel('# prey eaten')
     handles = [plt.Rectangle((0, 0), 1, 1, fc=GREEN, alpha=0.85, label='actual'),
                plt.Rectangle((0, 0), 1, 1, fc=ORANGE, alpha=0.85, label='simulated')]
